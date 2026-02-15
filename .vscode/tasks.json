@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Focus Firefox",
+            "type": "shell",
+            "command": "X:\\DATA\\_SOFTWARE\\_3D_PRINTING\\_PROJECTS\\HOUSING\\Domes\\Calculators\\v1.0\\focus_firefox.bat",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

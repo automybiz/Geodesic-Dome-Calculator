@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geodesic Dome DIY Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2 style="color:#0FF">Geodesic Dome Spec & DIY Plywood-Panel Estimator</h2>
+
+    <div class="global-settings" id="globalSettings">
+        <div id="globalSavingsBox" style="display:inline-block; margin-right: 20px;">
+            <label>Savings Threshold (%): </label>
+            <input type="number" id="savingsThreshold" value="25" onchange="recalcAll()">
+        </div>
+        <div id="globalUnitBox" style="display:inline-block;">
+            <label>Units: </label>
+            <select id="unitSelect" onchange="recalcAll()">
+                <option value="mm">millimeter (mm)</option>
+                <option value="cm">centimeter (cm)</option>
+                <option value="m">meter (m)</option>
+                <option value="in">inch (in)</option>
+                <option value="ft" selected>foot (ft)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="customTooltip" class="tooltip-box"></div>
+
+    <table id="domeTable">
+        <thead>
+            <tr>
+                <th>Dome Size</th>
+                <th>Pacific Domes Price (Freq)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_DIY_FREQ">DIY Frequency</th>
+                <th>Conduit Tube Size</th>
+                <th>Conduit Price ($/ea)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_DIAGONAL" id="head-diag">The Diagonal (in)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_MAX_STRUT" id="head-maxs">Max Strut Length (ft)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_STRUT_LEN">Strut Lengths (End to End)</th>
+                <th>Total Tubes</th>
+                <th>Total Struts</th>
+                <th>Total Bolts & Nuts</th>
+                <th>Bolts ($/ea)</th>
+                <th>Nyloc Nuts ($/ea)</th>
+                <th>DIY Price Minimum</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Injected by app.js -->
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Conductor Instructions:</strong> Use the "The Diagonal" to constrain the dome for 4x4 plywood sheets. 
+        The calculator will auto-increment frequency to satisfy the length constraint.
+    </div>
+
+    <div class="legend">
+        <h3 style="color:#0FF; cursor:pointer;" onclick="toggleLegend()">Column Legend (Click to Toggle)</h3>
+        <div id="legendContent">
+        <table>
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>DIY Frequency</strong></td>
+                    <td>The number of times the triangles are subdivided. Higher "v" = smaller panels but more struts.</td>
+                </tr>
+                <tr>
+                    <td><strong>The Diagonal</strong></td>
+                    <td>The maximum width of your pentagonal panel cluster. Supports flexible unit input (e.g., 4' 2" or 1250mm).</td>
+                </tr>
+                <tr>
+                    <td><strong>Max Strut Length</strong></td>
+                    <td>Calculated as (diagonal ÷ 1.618). This ensures the panel fits on your chosen sheet size.</td>
+                </tr>
+                <tr>
+                    <td><strong>Strut Lengths</strong></td>
+                    <td>The end-to-end length of the conduit. (Note: includes a 3/4" / 19.05mm hole-to-end offset).</td>
+                </tr>
+                <tr>
+                    <td><strong>Base Frequency</strong></td>
+                    <td>The lowest frequency recommended for structural stability at that dome size.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

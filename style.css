@@ -1,0 +1,161 @@
+body {
+    background-color: #000;
+    color: #FFF;
+    font-family: "Arial Narrow", sans-serif;
+    font-size: 11px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+table {
+    background-color: #011;
+    border: 1px solid #0FF;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 11px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1550px;
+}
+
+th, td {
+    border: 0.5px solid #044;
+    padding: 8px 4px;
+    text-align: center;
+}
+
+th {
+    background-color: #022;
+    color: #0FF;
+    text-transform: uppercase;
+    font-size: 0.8em;
+}
+
+[contenteditable="true"] {
+    background-color: #022;
+    outline: none;
+    cursor: edit;
+    color: #FFF;
+}
+
+[contenteditable="true"]:focus {
+    background-color: #033;
+    box-shadow: inset 0 0 5px #0FF;
+}
+
+.diy-total-cell {
+    font-weight: bold;
+    color: #0FF;
+    background-color: #011;
+    cursor: help;
+}
+
+select {
+    background: #022;
+    color: #0FF;
+    border: 1px solid #044;
+    font-family: "Arial Narrow", sans-serif;
+    font-size: 11px;
+    width: 100%;
+}
+
+.strut-display {
+    font-size: 10px;
+    color: #CCC;
+    text-align: left;
+    padding-left: 5px;
+    line-height: 1.2;
+}
+
+.note {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #888;
+    max-width: 800px;
+}
+
+.global-settings {
+    cursor: help;
+    margin-bottom: 20px;
+    color: #0FF;
+    background-color: #011;
+    padding: 10px;
+    border: 1px solid #044;
+    border-radius: 5px;
+}
+
+.global-settings input {
+    background: #000;
+    color: #0FF;
+    border: 1px solid #044;
+    padding: 4px;
+    width: 60px;
+    font-family: "Arial Narrow", sans-serif;
+}
+
+.tooltip-box {
+    position: absolute;
+    display: none;
+    background: #022;
+    color: #FFF;
+    border: 1px solid #0FF;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+.tooltip-box ul {
+    margin: 8px 0 0 16px;
+    padding: 0;
+}
+
+.tooltip-box li {
+    margin-bottom: 4px;
+}
+
+.price-red {
+    color: #F00 !important;
+}
+
+.price-green {
+    color: #0F0 !important;
+}
+
+.price-white {
+    color: #FFF !important;
+}
+
+.legend {
+    margin-top: 40px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.legend table {
+    max-width: 800px;
+}
+
+.legend th {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.legend td {
+    text-align: left;
+    padding: 8px 10px;
+}
+
+#legendContent {
+    display: none;
+}
+
+.help-head {
+    cursor: help;
+}

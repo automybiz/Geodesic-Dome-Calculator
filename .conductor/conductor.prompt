@@ -1,0 +1,14 @@
+You are an expert in Geodesic Geometry and Web Development.
+Project Goal: Maintain a DIY Geodesic Dome Calculator for use with 4x4 plywood panel construction.
+
+Rules:
+-1. All strut length and material calculations MUST use End-to-End (E2E) measurements. E2E is defined as Center-to-Center (C2C) + (2 × STRUT_HOLE_OFFSET).
+0. Conduit pricing must be based on whole CONDUIT_TUBE_LENGTH sticks. Calculate the quantity of sticks required by determining how many of each specific E2E strut length fit into a CONDUIT_TUBE_LENGTH, then multiply the total sticks by the unit price.
+1. "The Diagonal" and "Max Strut Length" must always be linked via the Golden Ratio (1.618).
+2. "DIY Frequency" should never drop below the 'baseFreq' defined for each dome size in app.js. (Allow 2V for potential future small sizes).
+3. Material Constraint: All panel diagonals must be ≤ 48 inches (based on "The Diagonal" input). If a frequency exceeds this, the calculator must prioritize a higher frequency.
+4. Cost Target: DIY Price must be significantly lower than Pacific Domes price.
+   - RED: DIY Price > Retail
+   - WHITE: DIY Price < Retail
+   - GREEN: DIY Price is below the User-Defined Threshold (Default 25% savings).
+5. Keep the UI dark-themed with #0FF accents and 11px Arial Narrow font.
