@@ -6,7 +6,7 @@ Rules:
 0. Conduit pricing must be based on whole CONDUIT_TUBE_LENGTH sticks. Calculate the quantity of sticks required by determining how many of each specific E2E strut length fit into a CONDUIT_TUBE_LENGTH, then multiply the total sticks by the unit price.
 1. "The Diagonal" and "Max Strut Length" must always be linked via the Golden Ratio (1.618).
 2. "DIY Frequency" should never drop below the 'baseFreq' defined for each dome size in app.js. (Allow 2V for potential future small sizes).
-3. Material Constraint: All panel diagonals must be ≤ 48 inches (based on "The Diagonal" input). If a frequency exceeds this, the calculator must prioritize a higher frequency.
+3. Material Constraint: All panel diagonals must be ≤ 48 inches (based on "The Diagonal" input). Use "The Diagonal" to constrain the dome for 4x4 plywood or 5x5 ft tin sheets. The calculator will auto-increment frequency to satisfy the length constraint.
 4. Cost Target: DIY Price must be significantly lower than Pacific Domes price.
    - RED: DIY Price > Retail
    - WHITE: DIY Price < Retail

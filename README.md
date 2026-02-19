@@ -1,12 +1,12 @@
 # Geodesic Dome Spec & DIY Plywood-Panel Estimator
 
-A specialized web-based calculator designed to help DIY builders estimate the cost and material requirements for geodesic domes, specifically optimized for **4x4 plywood panel construction**.
+A specialized web-based calculator designed to help DIY builders estimate the cost and material requirements for geodesic domes, specifically optimized for **4x4 foot plywood or 5x5 foot tin panel construction**.
 
 ## 🚀 Core Features
 
 ### 📐 Precision Engineering
 - **End-to-End (E2E) Accuracy:** All strut lengths are calculated as real-world cut lengths. The logic automatically adds material for flattened ends based on a standard 3/4" hole offset.
-- **Material Constraint Protection:** Automatically scales frequency (V) to ensure triangle diagonals stay under 48 inches, making them compatible with standard 4x4 plywood sheets. The 48 inch Diagonal default can be edited to accomodate larger panels as well.
+- **Material Constraint Protection:** Automatically scales frequency (V) to ensure triangle diagonals stay under 48 inches, making them compatible with standard 4x4 plywood sheets. The 48 inch Diagonal default can be edited to accomodate larger panels as well like 5x5 foot tin sheets.
 - **Golden Ratio Integration:** Uses the Golden Ratio (1.618) to maintain the relationship between the Diagonal and Max Strut Length.
 
 ### 💰 Realistic Costing
