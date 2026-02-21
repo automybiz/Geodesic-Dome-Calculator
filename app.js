@@ -183,22 +183,22 @@ const CONDUIT_SAFETY_LIMITS = {
 const domeConfigs = [
     { size: "16'", radiusMM: 2438.4, pd: "$1,750 (2V)", baseFreq: "3V" },
     { size: "18'", radiusMM: 2743.2, pd: "N/A", baseFreq: "3V" },
-    { size: "20'", radiusMM: 3048.0, pd: "$2,800 (2V/3V)", baseFreq: "3V" },
+    { size: "20'", radiusMM: 3048.0, pd: "$2,800 (3V)", baseFreq: "3V" },
     { size: "22'", radiusMM: 3352.8, pd: "N/A", baseFreq: "3V" },
-    { size: "24'", radiusMM: 3657.6, pd: "$3,250 (3V)", baseFreq: "3V" },
+    { size: "24'", radiusMM: 3657.6, pd: "$3,250 (3V 5/8)", baseFreq: "3V" },
     { size: "26'", radiusMM: 3962.4, pd: "N/A", baseFreq: "3V" },
     { size: "28'", radiusMM: 4267.2, pd: "N/A", baseFreq: "3V" },
-    { size: "30'", radiusMM: 4572.0, pd: "$4,200 (3V)", baseFreq: "3V" },
+    { size: "30'", radiusMM: 4572.0, pd: "$4,200 (4V)", baseFreq: "3V" },
     { size: "32'", radiusMM: 4876.8, pd: "N/A", baseFreq: "4V" },
     { size: "34'", radiusMM: 5181.6, pd: "N/A", baseFreq: "4V" },
-    { size: "36'", radiusMM: 5486.4, pd: "$6,600 (4V)", baseFreq: "4V" },
+    { size: "36'", radiusMM: 5486.4, pd: "$6,600 (5V 5/8)", baseFreq: "4V" },
     { size: "38'", radiusMM: 5791.2, pd: "N/A", baseFreq: "4V" },
     { size: "40'", radiusMM: 6096.0, pd: "N/A", baseFreq: "4V" },
     { size: "42'", radiusMM: 6400.8, pd: "N/A", baseFreq: "4V" },
-    { size: "44'", radiusMM: 6705.6, pd: "$12,950 (4V)", baseFreq: "4V" },
+    { size: "44'", radiusMM: 6705.6, pd: "$12,950 (6V)", baseFreq: "4V" },
     { size: "46'", radiusMM: 7010.4, pd: "N/A", baseFreq: "4V" },
     { size: "48'", radiusMM: 7315.2, pd: "N/A", baseFreq: "4V" },
-    { size: "50'", radiusMM: 7620.0, pd: "$15,000 (4V)", baseFreq: "4V" }
+    { size: "50'", radiusMM: 7620.0, pd: "$15,000 (6V)", baseFreq: "4V" }
 ];
 
 /**
@@ -657,8 +657,9 @@ function render() {
         if (diamFt >= 42) pdConduit = "1.9\"";
         else if (diamFt >= 26) pdConduit = "1.3\"";
 
+        const pdStrutFt = (maxStrutMM / 304.8).toFixed(1).replace(".0", "");
         const pdDisplay = conf.pd !== "N/A" 
-            ? `${conf.pd}<br><span style="font-size:0.8em; color:#AAA">(~${pdDiagFt}' Diagonal)</span><br><span style="font-size:0.8em; color:#AAA">(~${pdConduit} Conduit)</span>`
+            ? `${conf.pd}<br><span style="font-size:0.8em; color:#AAA">(~${pdDiagFt}' Diagonal)</span><br><span style="font-size:0.8em; color:#AAA">(~${pdStrutFt}' Strut Lengths)</span><br><span style="font-size:0.8em; color:#AAA">(~${pdConduit} Conduit)</span>`
             : "N/A";
 
         const row = document.createElement("tr");
@@ -1102,6 +1103,7 @@ function showVisualizer(el, strutLenMM) {
         const canvasL = sheetL * scale;
         const s = sFt * scale;
         const colW = s * COS30;
+        const triHeightFt = sFt * COS30;
 
         let gridHtml = "";
         
@@ -1126,6 +1128,11 @@ function showVisualizer(el, strutLenMM) {
                     const isRed = checkPoints(t1);
                     const color = isRed ? "#F44" : "#0FF";
                     gridHtml += `<path d="M ${t1[0].x},${t1[0].y} L ${t1[1].x},${t1[1].y} L ${t1[2].x},${t1[2].y} Z" fill="rgba(0,255,255,0.05)" stroke="${color}" stroke-width="1" ${isRed ? 'stroke-dasharray="2,2"' : ''} />`;
+                    
+                    // Add height indicator for the very first triangle (Top-Left)
+                    if (ix === 0 && (iy >= -0.1 && iy <= 0.1)) {
+                        gridHtml += `<line x1="${t1[1].x}" y1="${t1[1].y}" x2="${t1[0].x}" y2="${t1[1].y}" stroke="#FFF" stroke-width="1.5" stroke-dasharray="3,3" />`;
+                    }
                 }
 
                 // Triangle 2 (Facing Left - Nested)
@@ -1149,6 +1156,7 @@ function showVisualizer(el, strutLenMM) {
             <div style="margin-top:10px; font-size:0.8em; color:#AAA;">
                 Sheet: ${Math.round(sheetW * 100) / 100}' x ${Math.round(sheetL * 100) / 100}'<br>
                 Triangle side: ${sFt.toFixed(2)}'<br>
+                Triangle height: ${triHeightFt.toFixed(2)}'<br>
                 Max side allowed: ${maxStrutAllowed.toFixed(2)}'
             </div>
             <div style="font-size:0.7em; color:#0FF; margin-top:5px; border-top:1px solid #222; padding-top:5px;">
