@@ -15,60 +15,92 @@ let panelMaterials = [
 
 let editingMaterialIndex = -1; // Track if we are editing
 
-const TOOLTIP_SAVINGS = `Adjust the Savings Threshold (%) you want to save compared to the Pacific Domes prices. This affects the Color Coding in the DIY Price column.
+const TOOLTIP_COLUMN_SAVINGS = `Adjust the Savings Threshold (%) you want to save compared to the Pacific Domes prices. This affects the Color Coding in the DIY Price column.
 <ul>
     <li>RED for Prices ABOVE the Pacific Domes Price</li>
     <li>WHITE for Prices BELOW the Pacific Domes Price</li>
     <li>GREEN for Prices BELOW the Savings Threshold (%)</li>
 </ul>`;
 
-const TOOLTIP_DIY_FREQ = `Frequency (V) indicates how many times the triangles of a 1V dome (icosahedron) are subdivided.
+const TOOLTIP_COLUMN_DIY_FREQ = `Frequency (V) indicates how many times the triangles of a 1V dome (icosahedron) are subdivided.
+
+<b>Optimization Modes:</b>
 <ul>
-    <li>Higher "V" = smaller panels but more struts.</li>
-    <li>Larger domes require higher frequencies to keep individual panels small enough for 4x4 or 5x5 material.</li>
+    <li><b>Lowest Price (Budget):</b> The calculator scans all frequencies and automatically picks the one that results in the lowest total cost (Frame + Hardware).</li>
+    <li><b>Lowest Frequency (Complexity):</b> The calculator picks the simplest dome with the fewest parts that still fits your material.</li>
+</ul>
+
+<b>Difficulty Level:</b>
+<ul>
+    <li><b>1V - 3V:</b> Easiest. Few parts and simple assembly tiers. Perfect for first-time DIYers.</li>
+    <li><b>4V - 5V:</b> Moderate. Requires more focus on tier-by-tier assembly and color-coding.</li>
+    <li><b>6V - 8V:</b> Hardest. Involves hundreds of struts and many unique lengths. Recommended for large commercial or structural domes.</li>
 </ul>`;
 
-const TOOLTIP_DIAGONAL = `The maximum width of your pentagonal panel cluster (from your Fusion 360 sketch).
+const TOOLTIP_COLUMN_DIAGONAL = `The maximum width of your pentagonal panel cluster (the "star" shape).
 <ul>
-    <li>Supports mm, cm, m, in, ft (e.g., 4\\
- 2" or 1250mm).</li>
-    <li>Used to constrain the dome for standard material sizes (e.g., 4x4 plywood or 5x5 tin).</li>
-    <li><b>Pacific Domes Reference:</b> Their 16\\
- to 24\\
- (2V/3V) domes typically use diagonals ranging from 96" to 144" (2438mm to 3658mm).</li>
+    <li><b>Reference Only:</b> This column is now calculated automatically (Longest Strut × 1.618) and does not affect the red warning logic.</li>
+    <li><b>Hidable:</b> You can hide this entire column in the Default Global Settings to reduce clutter.</li>
+    <li><b>Pacific Domes Reference:</b> Their 16' to 24' (2V/3V) domes typically use diagonals ranging from 96" to 144" (2438mm to 3658mm).</li>
 </ul>`;
 
-const TOOLTIP_STRUT_LEN = `The end to end length of the conduit strut. 
+const TOOLTIP_DEFAULT_DIAGONAL = `The maximum width of your pentagonal panel cluster (the "star" shape).
+<ul>
+    <li><b>Reference Only:</b> This column is now calculated automatically (Longest Strut × 1.618) and does not affect the red warning logic.</li>
+    <li><b>Pacific Domes Reference:</b> Their 16' to 24' (2V/3V) domes typically use diagonals ranging from 96" to 144" (2438mm to 3658mm).</li>
+</ul>`;
+
+const TOOLTIP_COLUMN_STRUT_LEN = `The end to end length of the conduit strut. 
 <ul>
     <li><b>Standard:</b> Physical tip to physical tip.</li>
     <li><b>Hole Offset:</b> Includes 3/4" (19.05mm) offset on each end.</li>
-    <li><b>Warning (RED):</b> Exceeds your Max Strut Length (Material Limit).</li>
+    <li><b>The Red Warning:</b> Now optimized for individual panel cutting! A strut turns red only if it's too big to fit on your <b>Sheet Width</b> even with the "30° Tilt" trick.</li>
     <li><b>Conflict Resolution:</b> Increase Frequency (V) or Sheet Size.</li>
     <li><b>Fractions:</b> Imperial modes use precise 1/16th construction fractions.</li>
-</ul>`;
+</ul>
 
-const TOOLTIP_BASE_FREQ = `The lowest frequency recommended for structural stability at that dome size.`;
-
-const TOOLTIP_WHY_RED = `<b>MATERIAL CONFLICT:</b> This strut is too long to be cut from the specified material diagonal. 
+<b>The 30° "Secret Sauce":</b>
+How do we fit a 4.6 ft triangle on a 4 ft sheet? 
 <ul>
-    <li>Check your "Diagonal" input (Material Size).</li>
-    <li>Increase the "DIY Frequency" to subdivide panels further.</li>
-    <li>Current strut exceeds the physical sheet limit by the amount shown.</li>
+    <li><b>The Trick:</b> We don't lay the triangle flat. We tilt it 30 degrees.</li>
+    <li><b>The Math:</b> By tilting, we use the <b>Cosine of 30° (0.866)</b>. The sheet width becomes the "base" of a larger right triangle.</li>
+    <li><b>The Formula:</b> Max Strut = Sheet Width ÷ 0.866. This unlocks roughly <b>15% more length</b> out of every sheet!</li>
+</ul>
+
+<b>Decoding Strut Labels (A-Z):</b>
+<ul>
+    <li><b>Labels = Groups:</b> All struts with the same letter (e.g., "A") are identical in length.</li>
+    <li><b>Sorting:</b> Struts are listed from shortest to longest for your convenience, regardless of their letter.</li>
+    <li><b>Assembly Order (Tiers):</b>
+        <ul>
+            <li><b>(A):</b> The base layer (Deck Level) at the foundation.</li>
+            <li><b>(B):</b> The next tier built on top of A, and so on.</li>
+        </ul>
+    </li>
 </ul>`;
 
-const TOOLTIP_WASTE_MODES = `<b>Waste Estimation Modes:</b>
+const TOOLTIP_COLUMN_BASE_FREQ = `The lowest frequency recommended for structural stability at that dome size.`;
+
+const TOOLTIP_COLUMN_WHY_RED = `<b>MATERIAL CONFLICT:</b> This strut is too long to be cut from the specified sheet width. 
+<ul>
+    <li>Check your "Sheet Width" input (Material Size).</li>
+    <li>Increase the "DIY Frequency" to subdivide panels further.</li>
+    <li>Current strut length exceeds the physical sheet limit by the amount shown.</li>
+</ul>`;
+
+const TOOLTIP_DEFAULT_WASTE_MODES = `<b>Waste Estimation Modes:</b>
 <ul>
     <li><b>1:2 Ratio (Rectangle):</b> Ideal for efficiency. Assumes triangular nesting (flipping up/down) to use ~85% of the sheet. (~15% Waste)</li>
     <li><b>1:1 Ratio (Square):</b> Less efficient. Assumes cutting one main panel shape per sheet/section, discarding significantly more off-cuts. (~50% Waste)</li>
 </ul>`;
 
-const TOOLTIP_MAT_EFFICIENCY = `<b>Material Efficiency Guide:</b>
+const TOOLTIP_DEFAULT_MAT_EFFICIENCY = `<b>Material Efficiency Guide:</b>
 <ul>
     <li><b>1:2 Ratio (Rectangle):</b> e.g. 4x8, 5x10. Best for nesting triangles (Up/Down). Waste ~15%.</li>
     <li><b>1:1 Ratio (Square):</b> e.g. 4x4, 5x5. Hard to nest efficiently. If cutting 1 triangle/panel per sheet, waste is >50%.</li>
 </ul>`;
 
-const TOOLTIP_PANEL_COST = `<b>How Panels Per Sheet Works:</b>
+const TOOLTIP_COLUMN_PANEL_COST = `<b>How Panels Per Sheet Works:</b>
 The number of panels you get from a single sheet varies wildly by Frequency:
 <ul>
     <li><b>Low Freq (2V):</b> Huge panels = Few per sheet (e.g. 1-2).</li>
@@ -76,16 +108,35 @@ The number of panels you get from a single sheet varies wildly by Frequency:
 </ul>
 The calculator math: (Total Dome Area ÷ Sheet Area) * Waste Factor.`;
 
+const TOOLTIP_COLUMN_TOTAL_STRUTS = `<b>Assembly Order (Tiers):</b>
+Strut groups are listed alphabetically (A, B, C...) to guide your build:
+<ul>
+    <li><b>(A):</b> The base layer (Deck Level) that touches your foundation.</li>
+    <li><b>(B):</b> The next tier built on top of A.</li>
+    <li><b>(C):</b> The following tier, and so on.</li>
+</ul>
+<i>Tip: Label your struts by letter during cutting to make assembly much faster!</i>`;
+
+const TOOLTIP_DEFAULT_FREQ_OPTIMIZE = `<b>Optimization Behavior:</b>
+This setting defines the "logic" used during page load or when you change material sizes.
+<ul>
+    <li><b>Note:</b> Changing this dropdown will not instantly reset your current frequencies. It will take effect upon the next <b>Page Refresh</b> or when you modify a <b>Sheet Width</b> or <b>Diagonal</b> value.</li>
+    <li>This prevents the calculator from accidentally overwriting your manual frequency choices while you are working.</li>
+</ul>`;
+
 const TOOLTIP_MAP = {
-    TOOLTIP_SAVINGS,
-    TOOLTIP_DIY_FREQ,
-    TOOLTIP_DIAGONAL,
-    TOOLTIP_STRUT_LEN,
-    TOOLTIP_BASE_FREQ,
-    TOOLTIP_WHY_RED,
-    TOOLTIP_WASTE_MODES,
-    TOOLTIP_MAT_EFFICIENCY,
-    TOOLTIP_PANEL_COST
+    TOOLTIP_COLUMN_SAVINGS,
+    TOOLTIP_COLUMN_DIY_FREQ,
+    TOOLTIP_COLUMN_DIAGONAL,
+    TOOLTIP_DEFAULT_DIAGONAL,
+    TOOLTIP_COLUMN_STRUT_LEN,
+    TOOLTIP_COLUMN_BASE_FREQ,
+    TOOLTIP_COLUMN_WHY_RED,
+    TOOLTIP_DEFAULT_WASTE_MODES,
+    TOOLTIP_DEFAULT_MAT_EFFICIENCY,
+    TOOLTIP_COLUMN_PANEL_COST,
+    TOOLTIP_COLUMN_TOTAL_STRUTS,
+    TOOLTIP_DEFAULT_FREQ_OPTIMIZE
 };
 
 // Geodesic Data (Ratios & Quantities)
@@ -102,12 +153,23 @@ const freqData = {
 
 const domeConfigs = [
     { size: "16'", radiusMM: 2438.4, pd: "$1,750 (2V)", baseFreq: "3V" },
-    { size: "20'", radiusMM: 3048, pd: "$2,800 (2V/3V)", baseFreq: "3V" },
+    { size: "18'", radiusMM: 2743.2, pd: "N/A", baseFreq: "3V" },
+    { size: "20'", radiusMM: 3048.0, pd: "$2,800 (2V/3V)", baseFreq: "3V" },
+    { size: "22'", radiusMM: 3352.8, pd: "N/A", baseFreq: "3V" },
     { size: "24'", radiusMM: 3657.6, pd: "$3,250 (3V)", baseFreq: "3V" },
-    { size: "30'", radiusMM: 4572, pd: "$4,200 (3V)", baseFreq: "3V" },
+    { size: "26'", radiusMM: 3962.4, pd: "N/A", baseFreq: "3V" },
+    { size: "28'", radiusMM: 4267.2, pd: "N/A", baseFreq: "3V" },
+    { size: "30'", radiusMM: 4572.0, pd: "$4,200 (3V)", baseFreq: "3V" },
+    { size: "32'", radiusMM: 4876.8, pd: "N/A", baseFreq: "4V" },
+    { size: "34'", radiusMM: 5181.6, pd: "N/A", baseFreq: "4V" },
     { size: "36'", radiusMM: 5486.4, pd: "$6,600 (4V)", baseFreq: "4V" },
+    { size: "38'", radiusMM: 5791.2, pd: "N/A", baseFreq: "4V" },
+    { size: "40'", radiusMM: 6096.0, pd: "N/A", baseFreq: "4V" },
+    { size: "42'", radiusMM: 6400.8, pd: "N/A", baseFreq: "4V" },
     { size: "44'", radiusMM: 6705.6, pd: "$12,950 (4V)", baseFreq: "4V" },
-    { size: "50'", radiusMM: 7620, pd: "$15,000 (4V)", baseFreq: "4V" }
+    { size: "46'", radiusMM: 7010.4, pd: "N/A", baseFreq: "4V" },
+    { size: "48'", radiusMM: 7315.2, pd: "N/A", baseFreq: "4V" },
+    { size: "50'", radiusMM: 7620.0, pd: "$15,000 (4V)", baseFreq: "4V" }
 ];
 
 /**
@@ -249,21 +311,45 @@ function updatePanelCost() {
     }
 }
 
-function autoEstimateWaste(mode = 'rect') {
+function autoEstimateWaste() {
     const type = document.getElementById("newMatType").value;
-    let waste = 15;
-
-    if (mode === 'sq') {
-        // 1:1 Ratio (Square) - High Waste / Single Panel per Sheet
-        if (type === 'sheet') waste = 50;
-        else if (type === 'roll') waste = 25;
-        else waste = 10;
-    } else {
-        // 1:2 Ratio (Rectangle) - Max Efficiency / Nesting
-        if (type === 'sheet') waste = 15;
-        else if (type === 'roll') waste = 10;
-        else waste = 5;
+    const sheetW = parseFloat(document.getElementById("newMatWidth").value) || 4;
+    const sheetL = parseFloat(document.getElementById("newMatLength").value) || 8;
+    
+    if (type === 'unit') {
+        document.getElementById("newMatWaste").value = 5;
+        document.getElementById('wasteVal').innerText = `(5%)`;
+        return;
     }
+
+    // Use the longest strut from the first row as a reference for 'typical' waste
+    const firstRow = document.querySelector("#tableBody tr");
+    let refStrutMM = 1000; // Default 1m
+    if (firstRow) {
+        const struts = firstRow.querySelectorAll(".vis-eye");
+        if (struts.length > 0) {
+            // Extract mm from the onmouseenter attribute
+            const match = struts[struts.length-1].getAttribute("onmouseenter").match(/showVisualizer\(this, ([\d.]+)\)/);
+            if (match) refStrutMM = parseFloat(match[1]);
+        }
+    }
+    const s = refStrutMM / 304.8; // Strut in feet
+    const COS30 = 0.866;
+    
+    // Honeycomb Packing Logic
+    const triArea = (s * s * Math.sqrt(3)) / 4;
+    const colWidth = s * COS30;
+    const cols = Math.floor(sheetW / colWidth) || 1;
+    const rows = Math.floor(sheetL / s) || 1;
+    
+    // Rough estimate: each 'cell' of s x colWidth fits 2 triangles
+    const totalTriangles = cols * rows * 2;
+    const utilizedArea = totalTriangles * triArea;
+    const sheetArea = sheetW * sheetL;
+    
+    let waste = Math.round((1 - (utilizedArea / sheetArea)) * 100);
+    if (waste < 5) waste = 5;
+    if (waste > 60) waste = 60;
     
     document.getElementById("newMatWaste").value = waste;
     document.getElementById('wasteVal').innerText = `(${waste}%)`;
@@ -285,6 +371,7 @@ function openMaterialModal() {
     autoEstimateWaste('rect');
     
     toggleMatInputs();
+    updateModalVisualizer();
     
     document.querySelector("#materialModal h3").innerText = "Add New Material";
     document.getElementById("newMatName").focus();
@@ -316,6 +403,7 @@ function editCurrentMaterial() {
     document.getElementById('wasteVal').innerText = `(${wastePct}%)`;
 
     toggleMatInputs();
+    updateModalVisualizer();
 }
 
 function closeMaterialModal() {
@@ -334,7 +422,39 @@ function toggleMatInputs() {
         wGroup.querySelector("label").innerText = "Width (ft)";
         lGroup.style.display = "flex";
     }
+    updateModalVisualizer();
 }
+
+function updateModalVisualizer() {
+    const type = document.getElementById("newMatType").value;
+    const width = parseFloat(document.getElementById("newMatWidth").value) || 1;
+    const length = parseFloat(document.getElementById("newMatLength").value) || 1;
+    const container = document.getElementById("modalSvgContainer");
+    
+    if (type === 'unit') {
+        const size = Math.sqrt(width); // Represent Area as a square
+        const side = 200;
+        container.innerHTML = `<svg width="200" height="200">
+            <rect x="10" y="10" width="180" height="180" fill="rgba(0,255,255,0.2)" stroke="#0FF" stroke-width="2" />
+            <text x="100" y="110" fill="#AAA" font-size="12" text-anchor="middle">Area: ${width} sq ft</text>
+        </svg>`;
+    } else {
+        const maxW = 300;
+        const maxL = 300;
+        const scale = Math.min(maxW / width, maxL / length);
+        const canvasW = width * scale;
+        const canvasL = length * scale;
+        
+        container.innerHTML = `<svg width="${canvasW}" height="${canvasL}">
+            <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="rgba(0,255,255,0.2)" stroke="#0FF" stroke-width="2" />
+            <text x="${canvasW/2}" y="${canvasL/2}" fill="#AAA" font-size="12" text-anchor="middle">${width}' x ${length}'</text>
+        </svg>`;
+    }
+}
+
+// Attach listeners to modal inputs
+document.getElementById("newMatWidth").addEventListener("input", updateModalVisualizer);
+document.getElementById("newMatLength").addEventListener("input", updateModalVisualizer);
 
 function saveNewMaterial() {
     const name = document.getElementById("newMatName").value;
@@ -437,6 +557,18 @@ function render() {
         if(legendHeader) legendHeader.querySelector(".icon").innerText = "▲";
     }
 
+    // Restore Strut Sort Preference
+    const savedSort = localStorage.getItem("strutSortPreference");
+    if (savedSort) document.getElementById("strutSortSelect").value = savedSort;
+
+    // Restore Freq Optimization Preference
+    const savedOpt = localStorage.getItem("freqOptimizationPreference");
+    if (savedOpt) document.getElementById("freqOptimizeSelect").value = savedOpt;
+
+    // Restore Diagonal Visibility
+    const diagVisible = localStorage.getItem("showDiagonalColumn") !== "false";
+    document.getElementById("showDiagonalToggle").checked = diagVisible;
+
     populateMaterialSelect();
     
     // Initial display update for panel cost (without triggering recalcAll yet)
@@ -464,6 +596,31 @@ function render() {
         
         const sizeDisplay = `${conf.size} (${diamM}m)<br><span style="font-size:0.8em; color:#AAA">(~${sqFt} sq ft)</span>`;
 
+        // Calculate Pacific Domes Specs
+        let pdFreq = "3V"; // Default
+        const freqMatch = conf.pd.match(/\((\d+V)\)/);
+        if (freqMatch) pdFreq = freqMatch[1];
+        
+        // Find max strut length for this frequency to estimate diagonal
+        let maxR = 0;
+        if (freqData[pdFreq]) {
+            for(let p in freqData[pdFreq].parts) {
+                if(freqData[pdFreq].parts[p].r > maxR) maxR = freqData[pdFreq].parts[p].r;
+            }
+        }
+        const maxStrutMM = conf.radiusMM * maxR;
+        const pdDiagFt = ((maxStrutMM * 1.618) / 304.8).toFixed(1).replace(".0", ""); // Estimate Diagonal
+        
+        // Estimate Conduit Size
+        let pdConduit = "1\"";
+        const diamFt = radiusFt * 2;
+        if (diamFt >= 42) pdConduit = "1.9\"";
+        else if (diamFt >= 26) pdConduit = "1.3\"";
+
+        const pdDisplay = conf.pd !== "N/A" 
+            ? `${conf.pd}<br><span style="font-size:0.8em; color:#AAA">(~${pdDiagFt}' Diagonal)</span><br><span style="font-size:0.8em; color:#AAA">(~${pdConduit} Conduit)</span>`
+            : "N/A";
+
         const row = document.createElement("tr");
         row.setAttribute("data-id", i);
         if (hiddenRows.includes(i)) {
@@ -471,7 +628,7 @@ function render() {
         }
         row.innerHTML = `
             <td>${sizeDisplay}</td>
-            <td>${conf.pd}</td>
+            <td>${pdDisplay}</td>
             <td><select class="f-sel" onchange="calcRow(${i}, 'manual')">
                 <option value="1V">1V</option><option value="2V">2V</option><option value="3V">3V</option>
                 <option value="4V">4V</option><option value="5V">5V</option><option value="6V">6V</option>
@@ -482,7 +639,8 @@ function render() {
                 <option value="1" selected>1" EMT</option><option value="1.25">1.25" EMT</option>
             </select></td>
             <td contenteditable="true" class="c-p" onkeyup="debounce(${i})"></td>
-            <td contenteditable="true" class="diag" onkeyup="debounce(${i}, 'diag')" onblur="finalizeField(${i}, 'diag')" onkeydown="handleEnter(event)"></td>
+            <td class="diag diag-col"></td>
+            <td contenteditable="true" class="s-w" onkeyup="debounce(${i}, 'sheet')" onblur="finalizeField(${i}, 'sheet')" onkeydown="handleEnter(event)"></td>
             <td class="s-list"></td>
             <td class="t-t"></td>
             <td class="t-s"></td>
@@ -495,10 +653,20 @@ function render() {
         `;
         body.appendChild(row);
         row.querySelector(".f-sel").value = conf.baseFreq;
-        row.querySelector(".diag").setAttribute("data-mm", 1219.2);
-        calcRow(i); 
+        row.querySelector(".s-w").setAttribute("data-mm", 1219.2); // Initialize sheet width
+        calcRow(i, 'init'); 
     });
+    toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
+}
+
+function toggleDiagonalColumn() {
+    const isVisible = document.getElementById("showDiagonalToggle").checked;
+    localStorage.setItem("showDiagonalColumn", isVisible);
+    
+    document.querySelectorAll(".diag-col").forEach(el => el.style.display = isVisible ? "" : "none");
+    const head = document.getElementById("head-diag");
+    if (head) head.style.display = isVisible ? "" : "none";
 }
 
 function generateVisibilityControls() {
@@ -554,12 +722,15 @@ function parsePrice(el) {
 
 function calcRow(i, trigger) {
     const r = document.querySelector(`tr[data-id="${i}"]`);
+    if (!r) return;
     const conf = domeConfigs[i];
     const radiusMM = conf.radiusMM;
     const activeUnit = document.getElementById("unitSelect")?.value || "ft";
 
     const hDiag = document.getElementById("head-diag");
-    if (hDiag) hDiag.innerText = `The Diagonal (${activeUnit})`;
+    const hSheet = document.getElementById("head-sheet");
+    if (hDiag) hDiag.innerHTML = `The Diagonal <br> (${activeUnit})`;
+    if (hSheet) hSheet.innerHTML = `Sheet Width <br> (${activeUnit})`;
 
     // === Update Prices from Global Settings if not actively editing ===
     const tubeSize = r.querySelector(".c-sel").value; // "1/2", "3/4", "1", "1.25"
@@ -577,55 +748,110 @@ function calcRow(i, trigger) {
     if (document.activeElement !== r.querySelector(".b-p")) r.querySelector(".b-p").innerText = `$${boltPrice.toFixed(2)}`;
     if (document.activeElement !== r.querySelector(".n-p")) r.querySelector(".n-p").innerText = `$${nutPrice.toFixed(2)}`;
 
-    let currentDiagMM = parseFloat(r.querySelector(".diag").getAttribute("data-mm")) || 1219.2;
-    let maxC2CMM = currentDiagMM / PHI;
+    // Data Management
+    let currentSheetMM = parseFloat(r.querySelector(".s-w").getAttribute("data-mm")) || 1219.2;
 
-    if (trigger === "diag") {
-        let inputMM = parseToMM(r.querySelector(".diag").innerText);
-        if (inputMM !== null) {
-            currentDiagMM = inputMM;
-            maxC2CMM = currentDiagMM / PHI;
-        }
+    if (trigger === "sheet") {
+        let inputMM = parseToMM(r.querySelector(".s-w").innerText);
+        if (inputMM !== null) currentSheetMM = inputMM;
     }
 
-    let maxE2EMM = maxC2CMM + (2 * STRUT_HOLE_OFFSET_MM);
+    // Constraints logic
+    const COS30 = 0.866025;
+    const maxC2CFromSheetMM = currentSheetMM / COS30; // New limit based on Fusion 360 sketch
+    const maxE2EMM = maxC2CFromSheetMM + (2 * STRUT_HOLE_OFFSET_MM);
 
-    // Frequency Auto-Selection
+    // Frequency Auto-Selection (Only auto-adjust when material constraints change or initial load)
+    const optMode = document.getElementById("freqOptimizeSelect").value;
+    localStorage.setItem("freqOptimizationPreference", optMode);
+
     let currentFreq = r.querySelector(".f-sel").value;
-    if (trigger === "diag" || !trigger) {
+    if (trigger === "init") {
         const freqKeys = Object.keys(freqData);
         const startIndex = freqKeys.indexOf(conf.baseFreq);
-        let foundFreq = null;
+        let bestFreq = null;
+        let minPrice = Infinity;
+
         for (let j = startIndex; j < freqKeys.length; j++) {
             let key = freqKeys[j];
             let data = freqData[key];
+            
+            // 1. Check Fit
             let actualMaxR = 0;
             for(let p in data.parts) { if(data.parts[p].r > actualMaxR) actualMaxR = data.parts[p].r; }
             let neededMaxE2E = (radiusMM * actualMaxR) + (2 * STRUT_HOLE_OFFSET_MM);
+            
             if (neededMaxE2E <= maxE2EMM + 0.1) {
-                foundFreq = key;
-                break;
+                if (optMode === "freq") {
+                    bestFreq = key; // Found lowest freq that fits
+                    break; 
+                } else {
+                    // Lowest Price Mode - Calculate hypothetical cost
+                    let tempTubes = 0;
+                    for (let label in data.parts) {
+                        const len = (radiusMM * data.parts[label].r) + (2 * STRUT_HOLE_OFFSET_MM);
+                        tempTubes += Math.ceil(data.parts[label].qty / (Math.floor(CONDUIT_TUBE_LENGTH_MM / len) || 1));
+                    }
+                    const tempCost = (tempTubes * conduitPrice) + (data.bolts * (boltPrice + nutPrice));
+                    if (tempCost < minPrice) {
+                        minPrice = tempCost;
+                        bestFreq = key;
+                    }
+                }
             }
         }
-        if (!foundFreq) foundFreq = freqKeys[freqKeys.length - 1];
-        currentFreq = foundFreq;
+        if (!bestFreq) bestFreq = freqKeys[freqKeys.length - 1];
+        currentFreq = bestFreq;
         r.querySelector(".f-sel").value = currentFreq;
     }
 
-    r.querySelector(".diag").setAttribute("data-mm", currentDiagMM);
-    if (document.activeElement !== r.querySelector(".diag")) {
-        r.querySelector(".diag").innerText = formatFromMM(currentDiagMM);
+    // Calculate The Diagonal based on current frequency
+    const activeData = freqData[currentFreq];
+    let maxRForDiag = 0;
+    for (let p in activeData.parts) { if (activeData.parts[p].r > maxRForDiag) maxRForDiag = activeData.parts[p].r; }
+    let longestStrutC2C = radiusMM * maxRForDiag;
+    let calculatedDiagMM = longestStrutC2C * PHI;
+    
+    r.querySelector(".diag").setAttribute("data-mm", calculatedDiagMM);
+    r.querySelector(".diag").innerText = formatFromMM(calculatedDiagMM);
+
+    r.querySelector(".s-w").setAttribute("data-mm", currentSheetMM);
+    if (document.activeElement !== r.querySelector(".s-w")) {
+        r.querySelector(".s-w").innerText = formatFromMM(currentSheetMM);
     }
 
+    // --- Strut Listing & Sorting ---
+    const sortMode = document.getElementById("strutSortSelect").value;
+    localStorage.setItem("strutSortPreference", sortMode);
+
     const data = freqData[currentFreq];
+    
+    // Prepare parts array with calculated lengths
+    let partsArr = Object.entries(data.parts).map(([label, d]) => ({
+        label,
+        qty: d.qty,
+        r: d.r,
+        len: (radiusMM * d.r) + (2 * STRUT_HOLE_OFFSET_MM)
+    }));
+
+    // Apply Sorting
+    if (sortMode === "length") {
+        partsArr.sort((a, b) => a.len - b.len); // Shortest to Longest
+    } else {
+        partsArr.sort((a, b) => a.label.localeCompare(b.label)); // Alphabetical (A-Z)
+    }
+
     let sHtml = "";
-    for (let label in data.parts) {
-        let lenE2EMM = (radiusMM * data.parts[label].r) + (2 * STRUT_HOLE_OFFSET_MM);
-        let isOver = lenE2EMM > maxE2EMM + 0.5;
+    partsArr.forEach(p => {
+        let isOver = p.len > maxE2EMM + 0.5;
         let errorClass = isOver ? "price-red" : "";
         let tooltipAttr = isOver ? "data-tooltip-id=\"TOOLTIP_WHY_RED\"" : "";
-        sHtml += `<span class="${errorClass}" ${tooltipAttr} style="${isOver ? "cursor:help" : ""}">${data.parts[label].qty} x ${formatFromMM(lenE2EMM)} (${label})</span><br>`;
-    }
+        
+        // Visualizer Eye
+        let eyeIcon = `<span class="vis-eye" style="cursor:pointer; margin-left:5px;" onmouseenter="showVisualizer(this, ${p.len})" onmouseleave="hideVisualizer()">👁</span>`;
+
+        sHtml += `<span class="${errorClass}" data-tooltip-id="${isOver ? 'TOOLTIP_COLUMN_WHY_RED' : ''}" style="${isOver ? "cursor:help" : ""}">${p.qty} x ${formatFromMM(p.len)} (${p.label})</span>${eyeIcon}<br>`;
+    });
     r.querySelector(".s-list").innerHTML = `<div class="strut-display">${sHtml}</div>`;
 
     let totalTubes = 0;
@@ -689,10 +915,8 @@ function calcRow(i, trigger) {
     if (frameCost > pdPrice) totalCell.classList.add("price-red");
     else if (frameCost <= pdPrice * (1 - threshold)) totalCell.classList.add("price-green");
     else totalCell.classList.add("price-white");
-    totalCell.setAttribute("data-tooltip-id", "TOOLTIP_SAVINGS");
+    totalCell.setAttribute("data-tooltip-id", "TOOLTIP_COLUMN_SAVINGS");
 }
-
-// toggleLegend and toggleUsageGuide replaced by generic toggleAccordion
 
 function initTooltip() {
     const tooltip = document.getElementById("customTooltip");
@@ -786,6 +1010,115 @@ function initTooltip() {
         });
         el.dataset.hasTooltip = "true"; // Mark as attached
     });
+}
+
+function showVisualizer(el, strutLenMM) {
+    const visualizer = document.getElementById("customVisualizer");
+    const matIndex = document.getElementById("panelMaterialSelect").value;
+    const mat = panelMaterials[matIndex];
+    
+    const row = el.closest('tr');
+    const rowSheetWMM = row ? parseFloat(row.querySelector('.s-w').getAttribute('data-mm')) : null;
+
+    if (!mat || mat.type === 'unit') {
+        visualizer.innerHTML = "<h4>Visualizer</h4><p style='color:#AAA; font-size:0.8em;'>Select a Sheet or Roll material<br>to see the cut diagram.</p>";
+    } else {
+        const sheetW = rowSheetWMM ? rowSheetWMM / 304.8 : (mat.width || 4);
+        const sheetL = mat.length || 8;
+        const sFt = strutLenMM / 304.8;
+        
+        const COS30 = 0.866025;
+        const SIN30 = 0.5;
+        
+        const maxStrutAllowed = sheetW / COS30;
+        const mainFits = sFt <= maxStrutAllowed + 0.01;
+        const strokeColor = mainFits ? "#0FF" : "#F44";
+
+        const maxCanvasSize = 250;
+        const scale = maxCanvasSize / Math.max(sheetW, sheetL);
+        const canvasW = sheetW * scale;
+        const canvasL = sheetL * scale;
+        const s = sFt * scale;
+        const colW = s * COS30;
+
+        let gridHtml = "";
+        
+        // Helper: Check if points are in bounds
+        const checkPoints = (pts) => {
+            let out = false;
+            pts.forEach(p => {
+                if (p.x < -0.1 || p.x > canvasW + 0.1 || p.y < -0.1 || p.y > canvasL + 0.1) out = true;
+            });
+            return out;
+        };
+        const isAllOut = (pts) => {
+            return pts.every(p => p.x < -0.1 || p.x > canvasW + 0.1 || p.y < -0.1 || p.y > canvasL + 0.1);
+        };
+
+        // Loop to fill grid
+        for (let ix = 0; ix < canvasW + colW; ix += colW) {
+            for (let iy = -s; iy < canvasL + s; iy += s) {
+                // Triangle 1 (Facing Right)
+                const t1 = [{x: ix, y: iy}, {x: ix + colW, y: iy + s/2}, {x: ix, y: iy + s}];
+                if (!isAllOut(t1)) {
+                    const isRed = checkPoints(t1);
+                    const color = isRed ? "#F44" : "#0FF";
+                    gridHtml += `<path d="M ${t1[0].x},${t1[0].y} L ${t1[1].x},${t1[1].y} L ${t1[2].x},${t1[2].y} Z" fill="rgba(0,255,255,0.05)" stroke="${color}" stroke-width="1" ${isRed ? 'stroke-dasharray="2,2"' : ''} />`;
+                }
+
+                // Triangle 2 (Facing Left - Nested)
+                const t2 = [{x: ix + colW, y: iy + s/2}, {x: ix, y: iy + s}, {x: ix + colW, y: iy + s + s/2}];
+                if (!isAllOut(t2)) {
+                    const isRed = checkPoints(t2);
+                    const color = isRed ? "#F44" : "#0FF";
+                    gridHtml += `<path d="M ${t2[0].x},${t2[0].y} L ${t2[1].x},${t2[1].y} L ${t2[2].x},${t2[2].y} Z" fill="none" stroke="${color}" stroke-width="1" opacity="0.3" stroke-dasharray="${isRed ? '2,2' : '1,1'}" />`;
+                }
+            }
+        }
+
+        visualizer.innerHTML = `
+            <h4>Panel Cut Preview</h4>
+            <div style="margin-bottom:10px; color:${strokeColor}; font-weight:bold; font-size:0.9em;">${mainFits ? "FITS ON SHEET" : "OUT OF BOUNDS"}</div>
+            <svg width="${canvasW}" height="${canvasL}" style="border:1px solid #333; background:#050505;">
+                <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="#111" />
+                ${gridHtml}
+                <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="none" stroke="#555" stroke-width="1" />
+            </svg>
+            <div style="margin-top:10px; font-size:0.8em; color:#AAA;">
+                Sheet: ${Math.round(sheetW * 100) / 100}' x ${Math.round(sheetL * 100) / 100}'<br>
+                Triangle side: ${sFt.toFixed(2)}'<br>
+                Max side allowed: ${maxStrutAllowed.toFixed(2)}'
+            </div>
+            <div style="font-size:0.7em; color:#0FF; margin-top:5px; border-top:1px solid #222; padding-top:5px;">
+                Culling inactive triangles & strict collision detection enabled.
+            </div>
+        `;
+    }
+
+    const rect = el.getBoundingClientRect();
+    visualizer.style.display = "block";
+    
+    // Position tooltip safely
+    let left = rect.right + 15;
+    if (left + 270 > window.innerWidth) {
+        left = rect.left - 280;
+    }
+    
+    let top = rect.top + window.scrollY - 50;
+    // Prevent cutting off at bottom
+    visualizer.style.display = "block"; // Must be block to get offsetHeight
+    if (top + visualizer.offsetHeight > window.innerHeight + window.scrollY) {
+        top = (rect.bottom + window.scrollY) - visualizer.offsetHeight;
+    }
+    // Prevent cutting off at top
+    if (top < window.scrollY) top = window.scrollY + 10;
+
+    visualizer.style.left = (left + window.scrollX) + "px";
+    visualizer.style.top = top + "px";
+}
+
+function hideVisualizer() {
+    document.getElementById("customVisualizer").style.display = "none";
 }
 
 window.onload = render;

@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <center><h2 style="color:#0FF">Geodesic Dome Spec & DIY Plywood-Panel Estimator</h2></center>
+    <center><h2 style="color:#0FF">Geodesic Dome DIY Frame & Panel Calculator</h2></center>
 
     <div class="accordion-container">
         <div class="accordion-header" onclick="toggleAccordion()" id="defaultSettingsHeader">
-            <h3>Default Settings</h3>
+            <h3>Default Global Settings</h3>
             <span class="icon">▼</span>
         </div>
         <div class="accordion-content" id="accordionContent">
@@ -54,6 +54,25 @@
                     <label>Nyloc Nuts ($/ea)</label>
                     <input type="number" id="priceNut" value="0.45" step="0.01" onchange="recalcAll()">
                 </div>
+                <div class="setting-item">
+                    <label>Strut Sorting</label>
+                    <select id="strutSortSelect" onchange="recalcAll()">
+                        <option value="length">Shortest to Longest</option>
+                        <option value="alpha">Alphabetical (A-Z)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Optimize Frequency <span class="help-head" style="cursor:help; color:#FFF; border:1px solid #555; border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; font-size:0.7em;" data-tooltip-id="TOOLTIP_DEFAULT_FREQ_OPTIMIZE">?</span></label>
+                    <select id="freqOptimizeSelect" onchange="recalcAll()">
+                        <option value="freq">Lowest Frequency (Complexity)</option>
+                        <option value="price">Lowest Price (Budget)</option>
+                    </select>
+                </div>
+                <div class="setting-item" style="flex-direction: row; align-items: center; gap: 10px;">
+                    <label for="showDiagonalToggle" style="margin-bottom: 0;">Show "The Diagonal" Column</label>
+                    <input type="checkbox" id="showDiagonalToggle" checked onchange="toggleDiagonalColumn()">
+                    <span class="help-head" style="cursor:help; color:#FFF; border:1px solid #555; border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; font-size:0.7em;" data-tooltip-id="TOOLTIP_DEFAULT_DIAGONAL">?</span>
+                </div>
             </div>
 
             <div class="panel-manager">
@@ -80,25 +99,27 @@
     </div>
 
     <div id="customTooltip" class="tooltip-box"></div>
+    <div id="customVisualizer" class="visualizer-tooltip"></div>
 
     <table id="domeTable">
         <thead>
             <tr>
                 <th>Dome Size</th>
-                <th>Pacific Domes Frame Price</th>
-                <th class="help-head" data-tooltip-id="TOOLTIP_DIY_FREQ">DIY Frequency</th>
-                <th>Conduit Tube Size</th>
-                <th>Conduit Price ($/ea)</th>
-                <th class="help-head" data-tooltip-id="TOOLTIP_DIAGONAL" id="head-diag">The Diagonal (in)</th>
-                <th class="help-head" data-tooltip-id="TOOLTIP_STRUT_LEN">Strut Lengths (End to End)</th>
-                <th>Total Tubes</th>
-                <th>Total Struts</th>
-                <th>Total Bolts & Nuts</th>
-                <th>Bolts ($/ea)</th>
-                <th>Nyloc Nuts ($/ea)</th>
-                <th>DIY Frame Price</th>
-                <th class="help-head" data-tooltip-id="TOOLTIP_PANEL_COST">Panel Price</th>
-                <th>Frame + Panel Price</th>
+                <th>Pacific Domes <br> Frame Price</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_DIY_FREQ">DIY <br> Frequency</th>
+                <th>Conduit <br> Tube Size</th>
+                <th>Conduit Price <br> ($/ea)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_DIAGONAL" id="head-diag">The Diagonal <br> (in)</th>
+                <th id="head-sheet">Sheet Width <br> (ft)</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_STRUT_LEN">Strut Lengths <br> (End to End)</th>
+                <th>Total Conduit <br> Tubes</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_TOTAL_STRUTS">Total Struts</th>
+                <th>Total Bolts <br>& Nuts</th>
+                <th>Bolts <br> ($/ea)</th>
+                <th>Nyloc Nuts <br> ($/ea)</th>
+                <th>DIY Frame <br> Price</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_PANEL_COST">Panel Price</th>
+                <th>Frame + Panel <br> Price</th>
             </tr>
         </thead>
         <tbody id="tableBody">
@@ -115,12 +136,15 @@
         <div id="usageGuideContent" class="accordion-content">
             <div class="guide-step">
                 <h4>1. Set Your Global Standards</h4>
-                <p>Start at the very top. Select your preferred <strong>Units</strong> (mm, cm, m, in, ft). This instantly updates every measurement in the table. Next, set your <strong>Savings Threshold</strong>. This tells the calculator when to show prices in <span class="price-green">GREEN</span> (Good Deal!) or <span class="price-white">WHITE</span> (Standard). Note: Editable columns have lighter background colors to indicate they are editable.</p>
+                <p>Start at the very top. Select your preferred <strong>Units</strong> (mm, cm, m, in, ft). This instantly updates every measurement in the table. 
+                <br>Next, set your <strong>Savings Threshold</strong>. This tells the calculator when to show prices in <span class="price-green">GREEN</span> (Good Deal!) or <span class="price-white">WHITE</span> (Standard). 
+                <br>Note: Editable columns have lighter background colors to indicate they are editable.</p>
             </div>
             <br>
             <div class="guide-step">
                 <h4>2. Find Your Dome Size</h4>
-                <p>Locate the row for the dome size you want to build (e.g., 20' / 6m). We show the <strong>Pacific Domes Price</strong> so you can see how much you're saving by going DIY.</p>
+                <p>Locate the row for the dome size you want to build (e.g., 20' / 6m). We show the <strong>Pacific Domes Price</strong> so you can see how much you're saving by going DIY. 
+                <br>Note: Every column after the Pacific Domes Price column relates to your DIY build.</p>
             </div>
             <br>
             <div class="guide-step">
@@ -223,11 +247,12 @@
 
     <!-- Material Builder Modal -->
     <div id="materialModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 800px;">
             <span class="close-modal" onclick="closeMaterialModal()">&times;</span>
             <h3 style="color: #0FF; margin-top: 0;">Material Builder</h3>
             
-            <div class="modal-form-grid">
+            <div style="display: flex; gap: 20px; align-items: start;">
+            <div class="modal-form-grid" style="flex: 1;">
                 <div class="setting-item full-width">
                     <label>Material Name</label>
                     <input type="text" id="newMatName" placeholder="e.g. 1/2in Plywood">
@@ -261,12 +286,17 @@
                 <div class="setting-item full-width">
                     <label>Waste Factor (%) <span id="wasteVal" style="color:#AAA; font-size:0.8em;">(15%)</span></label>
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button onclick="autoEstimateWaste('rect')" style="flex:1; background:transparent; border:1px solid #099; color:#0FF; font-size:0.8em; cursor:pointer; padding:4px; border-radius:4px;">1:2 Ratio (Rectangle) (4x8) (5x10)</button>
-                        <button onclick="autoEstimateWaste('sq')" style="flex:1; background:transparent; border:1px solid #C55; color:#F99; font-size:0.8em; cursor:pointer; padding:4px; border-radius:4px;">1:1 Ratio (Square) (4x4) (5x5)</button>
-                        <span class="help-head" style="cursor:help; color:#FFF; border:1px solid #555; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; font-size:0.8em;" data-tooltip-id="TOOLTIP_MAT_EFFICIENCY">?</span>
+                        <button onclick="autoEstimateWaste()" style="flex:1; background:transparent; border:1px solid #099; color:#0FF; font-size:0.8em; cursor:pointer; padding:4px; border-radius:4px;">Auto-Calculate Waste (Honeycomb Nesting)</button>
+                        <span class="help-head" style="cursor:help; color:#FFF; border:1px solid #555; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; font-size:0.8em;" data-tooltip-id="TOOLTIP_DEFAULT_MAT_EFFICIENCY">?</span>
                     </div>
                     <input type="range" id="newMatWaste" min="0" max="60" value="15" oninput="document.getElementById('wasteVal').innerText = `(${this.value}%)`" style="width:100%">
                 </div>
+            </div>
+
+            <div id="modalVisualizer" style="flex: 1; border: 1px solid #333; background: #050505; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #AAA; font-size: 0.8em;">Material Preview</h4>
+                <div id="modalSvgContainer"></div>
+            </div>
             </div>
 
             <div class="modal-footer">
