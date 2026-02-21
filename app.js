@@ -124,6 +124,27 @@ This setting defines the "logic" used during page load or when you change materi
     <li>This prevents the calculator from accidentally overwriting your manual frequency choices while you are working.</li>
 </ul>`;
 
+const TOOLTIP_COLUMN_CONDUIT_SAFETY = `<b>Conduit Safety & Sizing:</b>
+<br>
+<br>
+<b>1. Strut Length is the Critical Factor</b>
+<br>Smaller frequencies lead to smaller strut sizes, which are more resistant to bowing and kinking. This is because the slenderness ratio of the strut determines its buckling strength. Longer struts are significantly weaker under compression.
+<br><br>
+<b>2. EMT Size Recommendations</b>
+<ul>
+    <li><b>1/2" EMT:</b> Generally safe for struts up to 4-5 feet.</li>
+    <li><b>3/4" EMT:</b> Generally safe for struts up to 6-7 feet.</li>
+    <li><b>1" EMT:</b> Generally safe for struts up to 8-10 feet.</li>
+    <li><b>1.25" EMT:</b> Recommended for struts exceeding 10 feet or for high-load environments (snow/heavy panels).</li>
+</ul>
+<b>3. Safety Logic</b>
+<br>The calculator monitors the longest strut in your configuration:
+<ul>
+    <li>If any strut exceeds 5ft (1524mm), 1/2" EMT is flagged as <span class="price-red">Unsafe</span>.</li>
+    <li>If any strut exceeds 7ft (2133mm), 3/4" EMT is flagged as <span class="price-red">Unsafe</span>.</li>
+    <li>If any strut exceeds 10ft (3048mm), 1" EMT is flagged as <span class="price-red">Unsafe</span>.</li>
+</ul>`;
+
 const TOOLTIP_MAP = {
     TOOLTIP_COLUMN_SAVINGS,
     TOOLTIP_COLUMN_DIY_FREQ,
@@ -136,7 +157,8 @@ const TOOLTIP_MAP = {
     TOOLTIP_DEFAULT_MAT_EFFICIENCY,
     TOOLTIP_COLUMN_PANEL_COST,
     TOOLTIP_COLUMN_TOTAL_STRUTS,
-    TOOLTIP_DEFAULT_FREQ_OPTIMIZE
+    TOOLTIP_DEFAULT_FREQ_OPTIMIZE,
+    TOOLTIP_COLUMN_CONDUIT_SAFETY
 };
 
 // Geodesic Data (Ratios & Quantities)
@@ -149,6 +171,13 @@ const freqData = {
     "6V": { struts: 555, bolts: 196, parts: { "A": { r: 0.165, qty: 60 }, "B": { r: 0.189, qty: 60 }, "F": { r: 0.218, qty: 120 } } },
     "7V": { struts: 765, bolts: 271, parts: { "A": { r: 0.141, qty: 60 }, "B": { r: 0.162, qty: 60 }, "C": { r: 0.163, qty: 60 }, "D": { r: 0.180, qty: 120 }, "G": { r: 0.194, qty: 120 } } },
     "8V": { struts: 1025, bolts: 361, parts: { "A": { r: 0.124, qty: 60 }, "B": { r: 0.142, qty: 60 }, "C": { r: 0.143, qty: 60 }, "D": { r: 0.158, qty: 120 }, "L": { r: 0.170, qty: 120 } } }
+};
+
+const CONDUIT_SAFETY_LIMITS = {
+    "1/2": 1524,    // 5ft
+    "3/4": 2133.6,  // 7ft
+    "1": 3048,      // 10ft
+    "1.25": 4572    // 15ft (Estimated upper bound for 1.25" EMT)
 };
 
 const domeConfigs = [
@@ -521,6 +550,13 @@ function handleEnter(e) {
     }
 }
 
+function getSmallestSafeConduit(maxStrutLenMM) {
+    if (maxStrutLenMM <= CONDUIT_SAFETY_LIMITS["1/2"]) return "1/2";
+    if (maxStrutLenMM <= CONDUIT_SAFETY_LIMITS["3/4"]) return "3/4";
+    if (maxStrutLenMM <= CONDUIT_SAFETY_LIMITS["1"]) return "1";
+    return "1.25";
+}
+
 function finalizeField(i, type) {
     calcRow(i, type);
 }
@@ -549,12 +585,16 @@ function render() {
         if(guideHeader) guideHeader.querySelector(".icon").innerText = "▲";
     }
     
-    // Column Legend (Default Open)
-    const legendState = localStorage.getItem("accordionOpen_legendContent");
-    if (legendState === "true" || legendState === null) {
-        document.getElementById("legendContent").classList.add("open");
-        const legendHeader = document.getElementById("legendContent").previousElementSibling;
-        if(legendHeader) legendHeader.querySelector(".icon").innerText = "▲";
+    // Safety Thresholds (Default Open)
+    const safetyState = localStorage.getItem("accordionOpen_safetyThresholdsContent");
+    const safetyEl = document.getElementById("safetyThresholdsContent");
+    if (safetyEl && (safetyState === "true" || safetyState === null)) {
+        safetyEl.classList.add("open");
+        const safetyHeader = safetyEl.previousElementSibling;
+        if(safetyHeader) {
+            const icon = safetyHeader.querySelector(".icon");
+            if(icon) icon.innerText = "▲";
+        }
     }
 
     // Restore Strut Sort Preference
@@ -636,7 +676,7 @@ function render() {
             </select></td>
             <td><select class="c-sel" onchange="calcRow(${i})">
                 <option value="1/2">1/2" EMT</option><option value="3/4">3/4" EMT</option>
-                <option value="1" selected>1" EMT</option><option value="1.25">1.25" EMT</option>
+                <option value="1">1" EMT</option><option value="1.25">1.25" EMT</option>
             </select></td>
             <td contenteditable="true" class="c-p" onkeyup="debounce(${i})"></td>
             <td class="diag diag-col"></td>
@@ -733,7 +773,8 @@ function calcRow(i, trigger) {
     if (hSheet) hSheet.innerHTML = `Sheet Width <br> (${activeUnit})`;
 
     // === Update Prices from Global Settings if not actively editing ===
-    const tubeSize = r.querySelector(".c-sel").value; // "1/2", "3/4", "1", "1.25"
+    const cSel = r.querySelector(".c-sel");
+    const tubeSize = cSel.value; // "1/2", "3/4", "1", "1.25"
     let conduitPrice = 0;
     if (tubeSize === "1/2") conduitPrice = parseFloat(document.getElementById("priceEMT12").value);
     else if (tubeSize === "3/4") conduitPrice = parseFloat(document.getElementById("priceEMT34").value);
@@ -803,6 +844,13 @@ function calcRow(i, trigger) {
         if (!bestFreq) bestFreq = freqKeys[freqKeys.length - 1];
         currentFreq = bestFreq;
         r.querySelector(".f-sel").value = currentFreq;
+
+        // Auto-select smallest safe conduit on init
+        const initData = freqData[currentFreq];
+        let initMaxR = 0;
+        for (let p in initData.parts) { if (initData.parts[p].r > initMaxR) initMaxR = initData.parts[p].r; }
+        const initLongestE2E = (radiusMM * initMaxR) + (2 * STRUT_HOLE_OFFSET_MM);
+        cSel.value = getSmallestSafeConduit(initLongestE2E);
     }
 
     // Calculate The Diagonal based on current frequency
@@ -814,6 +862,20 @@ function calcRow(i, trigger) {
     
     r.querySelector(".diag").setAttribute("data-mm", calculatedDiagMM);
     r.querySelector(".diag").innerText = formatFromMM(calculatedDiagMM);
+
+    // --- Conduit Safety Check ---
+    const longestStrutE2E = longestStrutC2C + (2 * STRUT_HOLE_OFFSET_MM);
+    const safeLimit = CONDUIT_SAFETY_LIMITS[tubeSize];
+    
+    if (longestStrutE2E > safeLimit) {
+        cSel.style.backgroundColor = "#500"; // Dark red for visibility against dark theme
+        cSel.style.color = "#f44";
+        cSel.style.borderColor = "#f44";
+    } else {
+        cSel.style.backgroundColor = "";
+        cSel.style.color = "";
+        cSel.style.borderColor = "";
+    }
 
     r.querySelector(".s-w").setAttribute("data-mm", currentSheetMM);
     if (document.activeElement !== r.querySelector(".s-w")) {

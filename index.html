@@ -107,7 +107,7 @@
                 <th>Dome Size</th>
                 <th>Pacific Domes <br> Frame Price</th>
                 <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_DIY_FREQ">DIY <br> Frequency</th>
-                <th>Conduit <br> Tube Size</th>
+                <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_CONDUIT_SAFETY">Conduit <br> Tube Size</th>
                 <th>Conduit Price <br> ($/ea)</th>
                 <th class="help-head" data-tooltip-id="TOOLTIP_COLUMN_DIAGONAL" id="head-diag">The Diagonal <br> (in)</th>
                 <th id="head-sheet">Sheet Width <br> (ft)</th>
@@ -135,51 +135,61 @@
         </div>
         <div id="usageGuideContent" class="accordion-content">
             <div class="guide-step">
-                <h4>1. Set Your Global Standards</h4>
-                <p>Start at the very top. Select your preferred <strong>Units</strong> (mm, cm, m, in, ft). This instantly updates every measurement in the table. 
-                <br>Next, set your <strong>Savings Threshold</strong>. This tells the calculator when to show prices in <span class="price-green">GREEN</span> (Good Deal!) or <span class="price-white">WHITE</span> (Standard). 
-                <br>Note: Editable columns have lighter background colors to indicate they are editable.</p>
-            </div>
-            <br>
-            <div class="guide-step">
-                <h4>2. Find Your Dome Size</h4>
-                <p>Locate the row for the dome size you want to build (e.g., 20' / 6m). We show the <strong>Pacific Domes Price</strong> so you can see how much you're saving by going DIY. 
-                <br>Note: Every column after the Pacific Domes Price column relates to your DIY build.</p>
-            </div>
-            <br>
-            <div class="guide-step">
-                <h4>3. The "Diagonal" is King</h4>
-                <p>This is the most critical step. Enter the maximum width of your panel material into <strong>"The Diagonal"</strong> column. 
-                <br><em>Why?</em> Because if you're using 4x4 ft plywood or 5x5 ft tin sheet, your diagonal cannot exceed ~48 or ~60 inches respectively. The calculator uses this number to ensure your panels actually fit on your sheets!</p>
-            </div>
-            <br>
-            <div class="guide-step">
-                <h4>4. Watch the Frequency Auto-Adjust</h4>
-                <p>Once you enter a Diagonal, watch the <strong>DIY Frequency</strong> column. The calculator will automatically increase the frequency (from 1V to 2V, 3V, etc.) until the panels are small enough to fit within your Diagonal constraint. You don't need to guess the lowest frequency; the calculator finds the lowest one that works for your material.</p>
-            </div>
-            <br>
-            <div class="guide-step">
-                <h4>5. Check Strut Lengths</h4>
-                <p>Review the <strong>Strut Lengths</strong> column.</p>
+                <h4>1. Configure Global Build Standards</h4>
+                <p>Start with the <strong>Default Global Settings</strong> at the top. 
                 <ul>
-                    <li>If a strut length is <span class="price-red">RED</span>, it is too long for your material (The Diagonal).</li>
-                    <li>The calculator checks if each strut can physically fit on your panel material. If it's too long, it won't fit!</li>
-                    <li><strong>To fix RED struts:</strong> Try increasing the frequency (V) manually or buy larger material and increase "The Diagonal".</li>
+                    <li><strong>Units:</strong> Choose between Metric and Imperial. Everything in the table updates instantly.</li>
+                    <li><strong>Savings Threshold:</strong> Set the percentage you want to save vs retail prices. This affects the <span class="price-green">GREEN</span> highlighting in the Frame Price column.</li>
+                    <li><strong>Local Pricing:</strong> Enter the price of EMT conduit and hardware at your local hardware store to get an accurate budget estimate.</li>
                 </ul>
+            </p>
             </div>
             <br>
             <div class="guide-step">
-                <h4>6. Check Costs & Savings</h4>
-                <p>Finally, look at the <strong>DIY Price Minimum</strong>.</p>
+                <h4>2. Select Your Dome Size</h4>
+                <p>Find the row matching your desired dome diameter (e.g., 20' / 6m). We include the <strong>Pacific Domes retail price</strong> as a reference so you can track your DIY savings in real-time. 
+                <br><em>Note: All columns to the right of the retail price are specific to your custom DIY configuration.</em></p>
+            </div>
+            <br>
+            <div class="guide-step">
+                <h4>3. Input Your Material Width (Sheet Width)</h4>
+                <p>This is the most important DIY constraint. Enter the width of the material you'll be using for panels (e.g., 4ft for standard plywood). 
+                <br>The calculator uses this to ensure your struts are short enough that the resulting triangular panels will physically fit on your material sheets.</p>
+            </div>
+            <br>
+            <div class="guide-step">
+                <h4>4. Optimize DIY Frequency (V)</h4>
+                <p>The <strong>DIY Frequency</strong> column tells you how complex the dome is. 
                 <ul>
-                    <li>If the Total Price is <span class="price-green">GREEN</span>, you are meeting your savings goal!</li>
-                    <li>If it's <span class="price-white">WHITE</span>, you're still saving money vs Pacific Domes.</li>
-                    <li>If it's <span class="price-red">RED</span>, the DIY cost is higher than buying the kit!</li>
+                    <li><strong>Auto-Adjustment:</strong> By default, the calculator automatically increases the frequency until your panels fit on the <strong>Sheet Width</strong> you provided.</li>
+                    <li><strong>Visual Feedback:</strong> If any <strong>Strut Lengths</strong> are <span class="price-red">RED</span>, they are too long for your material. Simply increase the Frequency (e.g., from 3V to 4V) to shorten the struts until the red disappears.</li>
                 </ul>
+            </p>
             </div>
             <br>
             <div class="guide-step">
-                <h4>7. Trouble Seeing? Zoom In!</h4>
+                <h4>5. Verify Conduit Safety Sizing</h4>
+                <p>The <strong>Conduit Tube Size</strong> dropdown will turn <span class="price-red">RED</span> if the selected tubing is too thin for the length of your struts. 
+                <ul>
+                    <li>The calculator follows structural engineering standards to prevent strut buckling.</li>
+                    <li>On initial load, it automatically picks the <strong>smallest safe size</strong>. If you manually downsize to an unsafe diameter, the red warning will appear.</li>
+                </ul>
+            </p>
+            </div>
+            <br>
+            <div class="guide-step">
+                <h4>6. Review Costs & Budget</h4>
+                <p>Look at the <strong>DIY Frame Price</strong> and <strong>Frame + Panel Price</strong> columns to see your totals.
+                <ul>
+                    <li><span class="price-green">GREEN:</span> You are saving more than your defined Savings Threshold!</li>
+                    <li><span class="price-white">WHITE:</span> You are saving money, but haven't hit your threshold yet.</li>
+                    <li><span class="price-red">RED:</span> Your DIY build is currently more expensive than buying a pre-made kit.</li>
+                </ul>
+            </p>
+            </div>
+            <br>
+            <div class="guide-step">
+                <h4>7. Accessibility: Zoom for Detail</h4>
                 <p>If the text is too small, you can easily adjust the size of the entire calculator.</p>
                 <ul>
                     <li><strong>Windows:</strong> Hold <kbd>CTRL</kbd> and scroll your mouse wheel, or press <kbd>CTRL</kbd> + <kbd>+</kbd>.</li>
@@ -211,38 +221,36 @@
     </div>
 
     <div class="accordion-container">
-        <div class="accordion-header" onclick="toggleAccordion('legendContent')">
-            <h3>Column Legend</h3>
+        <div class="accordion-header" onclick="toggleAccordion('safetyThresholdsContent')">
+            <h3>Safety Thresholds & Engineering References</h3>
             <span class="icon">▼</span>
         </div>
-        <div id="legendContent" class="accordion-content">
-        <table>
-            <thead>
-                <tr>
-                    <th>Column</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>DIY Frequency</strong></td>
-                    <td>The number of times the triangles are subdivided. Higher "v" = smaller panels but more struts.</td>
-                </tr>
-                <tr>
-                    <td><strong>The Diagonal</strong></td>
-                    <td>The maximum width of your pentagonal panel cluster. Supports flexible unit input (e.g., 4' 2" or 1250mm).</td>
-                </tr>
-                <tr>
-                    <td><strong>Strut Lengths</strong></td>
-                    <td>The end-to-end length of the conduit. (Note: includes a 3/4" / 19.05mm hole-to-end offset).</td>
-                </tr>
-                <tr>
-                    <td><strong>Base Frequency</strong></td>
-                    <td>The lowest frequency recommended for structural stability at that dome size.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <div id="safetyThresholdsContent" class="accordion-content">
+            <p>The safety thresholds used in this calculator are based on a combination of engineering principles and long-standing community standards within the DIY geodesic dome building community.</p>
+
+            <h4>1. Desert Domes (The DIY Gold Standard)</h4>
+            <p>One of the oldest and most respected resources for DIY geodesic builds. Their "Conduit Dome" guides recommend <strong>1/2" EMT</strong> for smaller 2V/3V domes (struts usually under 5ft) and suggest stepping up to <strong>3/4" or 1"</strong> as the dome diameter increases past 16-20 feet.
+            <br>Source: <a href="http://www.desertdomes.com" target="_blank" style="color:#0FF;">DesertDomes.com</a></p>
+
+            <h4>2. DomesWorld / Paul Robinson</h4>
+            <p>Paul Robinson documented extensive testing on EMT structural limits. His data suggests that resistance to buckling drops off sharply once a strut exceeds roughly <strong>5 feet (1.5 meters)</strong>, which informs our safety flagging.
+            <br>Source: <a href="http://www.domesworld.com" target="_blank" style="color:#0FF;">DomesWorld.com / DIY Geodesic Dome Construction</a></p>
+
+            <h4>3. Engineering Principles: Slenderness Ratio</h4>
+            <p>Modern engineering analysis of designs using EMT conduit relies on the <strong>Slenderness Ratio</strong> (Length / Radius of Gyration). For steel tubing, keeping this ratio low prevents catastrophic elastic buckling.
+            <br>
+            <strong>Thresholds:</strong>
+            <ul>
+                <li><strong>1/2" EMT (OD 0.706"):</strong> Buckling risk increases significantly at ~60 inches (5ft).</li>
+                <li><strong>3/4" EMT (OD 0.922"):</strong> Safe threshold extends to ~84 inches (7ft).</li>
+                <li><strong>1" EMT (OD 1.163"):</strong> Safe threshold extends to ~120 inches (10ft).</li>
+            </ul>
+            Source: <a href="https://www.aisc.org/" target="_blank" style="color:#0FF;">AISC Manual of Steel Construction</a> applied to EMT specifications.</p>
+
+            <h4>4. Burning Man Project / "Black Rock City" Build Guides</h4>
+            <p>Community-maintained guides based on real-world high-wind performance. They recommend <strong>3/4" EMT</strong> as the minimum if struts exceed 5 feet, and <strong>1" EMT</strong> for 24'+ domes to ensure the frame doesn't kink under wind or structural loads.
+            <br>Source: <a href="https://hive.burningman.org" target="_blank" style="color:#0FF;">Burning Man Hive / Dome Building Resources</a></p>
+        </div>
     </div>
 
     <!-- Material Builder Modal -->

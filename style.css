@@ -270,7 +270,7 @@ input[type="number"] {
     z-index: 3000; /* Higher than modal (2000) */
     pointer-events: none;
     box-shadow: 0 0 10px #0FF;
-    max-width: 450px;
+    max-width: 480px;
 }
 
 .visualizer-tooltip {
