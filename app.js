@@ -774,7 +774,7 @@ function render() {
             rowMatSel.value = "default";
         }
 
-        calcRow(i, 'init'); 
+        setTimeout(() => calcRow(i, 'init'), 0); // Force to end of execution stack
     });
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
