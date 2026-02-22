@@ -1327,10 +1327,10 @@ function showVisualizer(el, strutLenMM) {
                 <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="none" stroke="#555" stroke-width="1" />
             </svg>
             <div style="margin-top:10px; font-size:0.8em; color:#AAA;">
-                Sheet: ${Math.round(sheetW * 100) / 100}' x ${Math.round(sheetL * 100) / 100}'<br>
-                Triangle side: ${sFt.toFixed(2)}'<br>
-                Triangle height: ${triHeightFt.toFixed(2)}'<br>
-                Max side allowed: ${maxStrutAllowed.toFixed(2)}'
+                Sheet: ${formatFromMM(sheetW * 304.8)} x ${formatFromMM(sheetL * 304.8)}<br>
+                Triangle side: ${formatFromMM(strutLenMM)}<br>
+                Triangle height: ${formatFromMM(triHeightFt * 304.8)}<br>
+                Max side allowed: ${formatFromMM(maxStrutAllowed * 304.8)}
             </div>
             <div style="font-size:0.7em; color:#0FF; margin-top:5px; border-top:1px solid #222; padding-top:5px;">
                 Culling inactive triangles & strict collision detection enabled.
