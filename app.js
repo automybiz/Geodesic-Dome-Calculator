@@ -328,7 +328,11 @@ function populateMaterialSelect() {
     panelMaterials.forEach((mat, index) => {
         const opt = document.createElement("option");
         opt.value = index;
-        opt.innerText = mat.name;
+        let display = mat.name;
+        if (mat.width && mat.length) {
+            display += ` (${mat.width}x${mat.length} ft)`;
+        }
+        opt.innerText = display;
         select.appendChild(opt);
     });
     
