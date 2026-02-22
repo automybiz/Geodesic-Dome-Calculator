@@ -981,9 +981,8 @@ function calcRow(i, trigger) {
         const approxPanels = Math.ceil((20 * vNum * vNum) / 2);
 
         // Unit Label
-        let unitLabel = "units";
-        if (mat.type === 'sheet') unitLabel = "sheets";
-        else if (mat.type === 'roll') unitLabel = "rolls";
+        let unitLabel = "sheets";
+        if (mat.type === 'roll') unitLabel = "rolls";
 
         // Detailed tooltip for panel cost
         const tipText = `<b>Panel Estimation:</b>
