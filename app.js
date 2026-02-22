@@ -689,6 +689,8 @@ function render() {
     // Load visibility state
     const hiddenRows = JSON.parse(localStorage.getItem("hiddenDomeRows") || "[]");
 
+    populateRowMaterialSelects(); // Populate the selects before creating the rows if possible? No, they need the selects to exist.
+
     domeConfigs.forEach((conf, i) => {
         // Calculate precise display values
         const diamM = (conf.radiusMM * 2 / 1000).toFixed(1);
@@ -728,6 +730,14 @@ function render() {
         if (hiddenRows.includes(i)) {
             row.style.display = "none";
         }
+        
+        // Prepare options for the material dropdown
+        const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
+        let matOptions = `<option value="default">Use Global Default</option>`;
+        panelMaterials.forEach((mat, idx) => {
+            matOptions += `<option value="${idx}">${mat.name}</option>`;
+        });
+
         row.innerHTML = `
             <td>${sizeDisplay}</td>
             <td>${pdDisplay}</td>
@@ -742,7 +752,7 @@ function render() {
             </select></td>
             <td contenteditable="true" class="c-p" onkeyup="debounce(${i})"></td>
             <td class="diag diag-col"></td>
-            <td><select class="s-mat-sel" onchange="onRowMaterialChange(${i})"></select></td>
+            <td><select class="s-mat-sel" onchange="onRowMaterialChange(${i})">${matOptions}</select></td>
             <td class="s-list"></td>
             <td class="t-t"></td>
             <td class="t-s"></td>
@@ -755,10 +765,17 @@ function render() {
         `;
         body.appendChild(row);
         row.querySelector(".f-sel").value = conf.baseFreq;
-        // row.querySelector(".s-w").setAttribute("data-mm", 1219.2); // Removed as it's now handled by material dropdown
+        
+        // Set the correct material selection before calculating
+        const rowMatSel = row.querySelector(".s-mat-sel");
+        if (storedSelections[i] !== undefined) {
+            rowMatSel.value = storedSelections[i];
+        } else {
+            rowMatSel.value = "default";
+        }
+
         calcRow(i, 'init'); 
     });
-    populateRowMaterialSelects(); // Added to ensure selects are populated after row creation
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
 }
