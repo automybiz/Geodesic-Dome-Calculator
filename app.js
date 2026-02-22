@@ -13,6 +13,18 @@ let panelMaterials = [
     { name: "Canvas (yd)", price: 15.00, areaSqFt: 9, waste: 1.15, type: 'unit', width: 9, length: 1 }             
 ];
 
+// Helper to ensure material has valid dimensions
+function sanitizeMaterial(mat) {
+    if (mat.type === 'unit') {
+        mat.width = mat.width || 3; // default for yards if not set
+        mat.length = mat.length || 3;
+    } else {
+        mat.width = mat.width || 4;
+        mat.length = mat.length || 8;
+    }
+    return mat;
+}
+
 let editingMaterialIndex = -1; // Track if we are editing
 
 const TOOLTIP_COLUMN_SAVINGS = `Adjust the Savings Threshold (%) you want to save compared to the Pacific Domes prices. This affects the Color Coding in the DIY Price column.
@@ -308,7 +320,9 @@ function populateMaterialSelect() {
     const select = document.getElementById("panelMaterialSelect");
     // Load from local storage if available
     const stored = localStorage.getItem("panelMaterials");
-    if (stored) panelMaterials = JSON.parse(stored);
+    if (stored) {
+        panelMaterials = JSON.parse(stored).map(sanitizeMaterial);
+    }
 
     select.innerHTML = "";
     panelMaterials.forEach((mat, index) => {
@@ -341,7 +355,7 @@ function populateRowMaterialSelects() {
             const opt = document.createElement("option");
             opt.value = idx;
             let display = mat.name;
-            if (mat.type !== 'unit') {
+            if (mat.width && mat.length) {
                 display += ` (${mat.width}x${mat.length} ft)`;
             }
             opt.innerText = display;
@@ -740,7 +754,7 @@ function render() {
         let matOptions = `<option value="default">Use Global Default</option>`;
         panelMaterials.forEach((mat, idx) => {
             let display = mat.name;
-            if (mat.type !== 'unit') {
+            if (mat.width && mat.length) {
                 display += ` (${mat.width}x${mat.length} ft)`;
             }
             matOptions += `<option value="${idx}">${display}</option>`;
