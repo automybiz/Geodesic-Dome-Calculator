@@ -777,8 +777,12 @@ function render() {
 
     // Run calculations for all rows after they are all added to the DOM
     setTimeout(() => {
-        domeConfigs.forEach((_, i) => calcRow(i, 'init'));
-    }, 50);
+        const rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(r => {
+            const id = parseInt(r.getAttribute("data-id"));
+            calcRow(id, 'init');
+        });
+    }, 100);
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
 }
