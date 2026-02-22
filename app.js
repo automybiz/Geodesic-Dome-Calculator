@@ -766,16 +766,19 @@ function render() {
         body.appendChild(row);
         row.querySelector(".f-sel").value = conf.baseFreq;
         
-        // Set the correct material selection before calculating
+        // Set the correct material selection
         const rowMatSel = row.querySelector(".s-mat-sel");
         if (storedSelections[i] !== undefined) {
             rowMatSel.value = storedSelections[i];
         } else {
             rowMatSel.value = "default";
         }
-
-        setTimeout(() => calcRow(i, 'init'), 0); // Force to end of execution stack
     });
+
+    // Run calculations for all rows after they are all added to the DOM
+    setTimeout(() => {
+        domeConfigs.forEach((_, i) => calcRow(i, 'init'));
+    }, 50);
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
 }
