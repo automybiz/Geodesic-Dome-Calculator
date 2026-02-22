@@ -752,6 +752,30 @@ function toggleRowVisibility(index, isVisible) {
     localStorage.setItem("hiddenDomeRows", JSON.stringify(hiddenRows));
 }
 
+function showOnlyPD() {
+    let hiddenRows = [];
+    domeConfigs.forEach((conf, i) => {
+        if (conf.pd === "N/A") {
+            hiddenRows.push(i);
+        }
+    });
+    localStorage.setItem("hiddenDomeRows", JSON.stringify(hiddenRows));
+    
+    // Refresh table and controls
+    const body = document.getElementById("tableBody");
+    const rows = body.querySelectorAll("tr");
+    rows.forEach(row => {
+        const id = parseInt(row.getAttribute("data-id"));
+        if (hiddenRows.includes(id)) {
+            row.style.display = "none";
+        } else {
+            row.style.display = "";
+        }
+    });
+    
+    generateVisibilityControls();
+}
+
 function debounce(i, type) {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => calcRow(i, type), UPDATE_DELAY);
