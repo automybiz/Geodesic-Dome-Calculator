@@ -755,9 +755,10 @@ function render() {
         `;
         body.appendChild(row);
         row.querySelector(".f-sel").value = conf.baseFreq;
-        row.querySelector(".s-w").setAttribute("data-mm", 1219.2); // Initialize sheet width
+        // row.querySelector(".s-w").setAttribute("data-mm", 1219.2); // Removed as it's now handled by material dropdown
         calcRow(i, 'init'); 
     });
+    populateRowMaterialSelects(); // Added to ensure selects are populated after row creation
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
 }
