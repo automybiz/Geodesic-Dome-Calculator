@@ -932,7 +932,10 @@ function calcRow(i, trigger) {
     const mat = panelMaterials[matIndex];
     
     // Width is always used for the "fits on sheet" logic
-    let currentSheetMM = (mat.width || 4) * 304.8;
+    let currentSheetMM = 1219.2; // 4ft Default
+    if (mat && mat.width) {
+        currentSheetMM = mat.width * 304.8;
+    }
 
     // Constraints logic
     const COS30 = 0.866025;
@@ -997,8 +1000,11 @@ function calcRow(i, trigger) {
     let longestStrutC2C = radiusMM * maxRForDiag;
     let calculatedDiagMM = longestStrutC2C * PHI;
     
-    r.querySelector(".diag").setAttribute("data-mm", calculatedDiagMM);
-    r.querySelector(".diag").innerText = formatFromMM(calculatedDiagMM);
+    const diagEl = r.querySelector(".diag");
+    if (diagEl) {
+        diagEl.setAttribute("data-mm", calculatedDiagMM);
+        diagEl.innerText = formatFromMM(calculatedDiagMM);
+    }
 
     // --- Conduit Safety Check ---
     const longestStrutE2E = longestStrutC2C + (2 * STRUT_HOLE_OFFSET_MM);
@@ -1014,9 +1020,12 @@ function calcRow(i, trigger) {
         cSel.style.borderColor = "";
     }
 
-    r.querySelector(".s-w").setAttribute("data-mm", currentSheetMM);
-    if (document.activeElement !== r.querySelector(".s-w")) {
-        r.querySelector(".s-w").innerText = formatFromMM(currentSheetMM);
+    const swEl = r.querySelector(".s-w");
+    if (swEl) {
+        swEl.setAttribute("data-mm", currentSheetMM);
+        if (document.activeElement !== swEl) {
+            swEl.innerText = formatFromMM(currentSheetMM);
+        }
     }
 
     // --- Strut Listing & Sorting ---
