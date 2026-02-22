@@ -322,9 +322,35 @@ function populateMaterialSelect() {
     const savedIndex = localStorage.getItem("selectedMaterialIndex");
     if (savedIndex !== null && panelMaterials[savedIndex]) {
         select.value = savedIndex;
+    } else {
+        localStorage.setItem("selectedMaterialIndex", 0);
+        select.value = 0;
     }
     
-    // updatePanelCost(); // Removed to prevent premature recalcAll during render
+    populateRowMaterialSelects();
+}
+
+function populateRowMaterialSelects() {
+    const selects = document.querySelectorAll(".s-mat-sel");
+    const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
+
+    selects.forEach(sel => {
+        const rowIndex = sel.closest("tr").getAttribute("data-id");
+        sel.innerHTML = `<option value="default">Use Global Default</option>`;
+        panelMaterials.forEach((mat, idx) => {
+            const opt = document.createElement("option");
+            opt.value = idx;
+            opt.innerText = mat.name;
+            sel.appendChild(opt);
+        });
+
+        // Restore row selection
+        if (storedSelections[rowIndex] !== undefined) {
+            sel.value = storedSelections[rowIndex];
+        } else {
+            sel.value = "default";
+        }
+    });
 }
 
 function updatePanelCost() {
@@ -433,6 +459,41 @@ function editCurrentMaterial() {
 
     toggleMatInputs();
     updateModalVisualizer();
+}
+
+function deleteCurrentMaterial() {
+    const index = parseInt(document.getElementById("panelMaterialSelect").value);
+    if (panelMaterials.length <= 1) {
+        alert("You must have at least one material defined.");
+        return;
+    }
+
+    if (confirm(`Are you sure you want to delete "${panelMaterials[index].name}"?`)) {
+        panelMaterials.splice(index, 1);
+        localStorage.setItem("panelMaterials", JSON.stringify(panelMaterials));
+        
+        // Fix row selections that might have pointed to this index or higher
+        let storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
+        for (let rowId in storedSelections) {
+            if (storedSelections[rowId] === index) {
+                storedSelections[rowId] = "default";
+            } else if (parseInt(storedSelections[rowId]) > index) {
+                storedSelections[rowId] = (parseInt(storedSelections[rowId]) - 1).toString();
+            }
+        }
+        localStorage.setItem("rowMaterialSelections", JSON.stringify(storedSelections));
+
+        // Adjust global selection if needed
+        let globalIndex = parseInt(localStorage.getItem("selectedMaterialIndex") || 0);
+        if (globalIndex === index) {
+            localStorage.setItem("selectedMaterialIndex", 0);
+        } else if (globalIndex > index) {
+            localStorage.setItem("selectedMaterialIndex", globalIndex - 1);
+        }
+
+        populateMaterialSelect();
+        updatePanelCost();
+    }
 }
 
 function closeMaterialModal() {
@@ -681,7 +742,7 @@ function render() {
             </select></td>
             <td contenteditable="true" class="c-p" onkeyup="debounce(${i})"></td>
             <td class="diag diag-col"></td>
-            <td contenteditable="true" class="s-w" onkeyup="debounce(${i}, 'sheet')" onblur="finalizeField(${i}, 'sheet')" onkeydown="handleEnter(event)"></td>
+            <td><select class="s-mat-sel" onchange="onRowMaterialChange(${i})"></select></td>
             <td class="s-list"></td>
             <td class="t-t"></td>
             <td class="t-s"></td>
@@ -789,6 +850,15 @@ function showAllDomes() {
     generateVisibilityControls();
 }
 
+function onRowMaterialChange(rowIndex) {
+    const r = document.querySelector(`tr[data-id="${rowIndex}"]`);
+    const sel = r.querySelector(".s-mat-sel");
+    let storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
+    storedSelections[rowIndex] = sel.value;
+    localStorage.setItem("rowMaterialSelections", JSON.stringify(storedSelections));
+    calcRow(rowIndex);
+}
+
 function debounce(i, type) {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => calcRow(i, type), UPDATE_DELAY);
@@ -808,7 +878,7 @@ function calcRow(i, trigger) {
     const hDiag = document.getElementById("head-diag");
     const hSheet = document.getElementById("head-sheet");
     if (hDiag) hDiag.innerHTML = `The Diagonal <br> (${activeUnit})`;
-    if (hSheet) hSheet.innerHTML = `Sheet Width <br> (${activeUnit})`;
+    if (hSheet) hSheet.innerHTML = `Sheet Size <br> (Material)`;
 
     // === Update Prices from Global Settings if not actively editing ===
     const cSel = r.querySelector(".c-sel");
@@ -828,12 +898,15 @@ function calcRow(i, trigger) {
     if (document.activeElement !== r.querySelector(".n-p")) r.querySelector(".n-p").innerText = `$${nutPrice.toFixed(2)}`;
 
     // Data Management
-    let currentSheetMM = parseFloat(r.querySelector(".s-w").getAttribute("data-mm")) || 1219.2;
-
-    if (trigger === "sheet") {
-        let inputMM = parseToMM(r.querySelector(".s-w").innerText);
-        if (inputMM !== null) currentSheetMM = inputMM;
+    const matSel = r.querySelector(".s-mat-sel");
+    let matIndex = matSel.value;
+    if (matIndex === "default") {
+        matIndex = document.getElementById("panelMaterialSelect").value;
     }
+    const mat = panelMaterials[matIndex];
+    
+    // Width is always used for the "fits on sheet" logic
+    let currentSheetMM = (mat.width || 4) * 304.8;
 
     // Constraints logic
     const COS30 = 0.866025;
@@ -968,8 +1041,7 @@ function calcRow(i, trigger) {
     // --- Panel Cost Calculation ---
     const radiusFt = radiusMM / 304.8; 
     const surfaceAreaSqFt = 2 * Math.PI * radiusFt * radiusFt; // Approx Hemisphere area
-    const matIndex = document.getElementById("panelMaterialSelect").value;
-    const mat = panelMaterials[matIndex];
+    // Use the already resolved mat/matIndex from the top of calcRow
     let panelCost = 0;
     if (mat) {
         const waste = mat.waste || 1.15; // Default 15% waste if undefined
@@ -1113,16 +1185,18 @@ function initTooltip() {
 
 function showVisualizer(el, strutLenMM) {
     const visualizer = document.getElementById("customVisualizer");
-    const matIndex = document.getElementById("panelMaterialSelect").value;
-    const mat = panelMaterials[matIndex];
-    
     const row = el.closest('tr');
-    const rowSheetWMM = row ? parseFloat(row.querySelector('.s-w').getAttribute('data-mm')) : null;
-
+    const matSel = row.querySelector(".s-mat-sel");
+    let matIdx = matSel.value;
+    if (matIdx === "default") {
+        matIdx = document.getElementById("panelMaterialSelect").value;
+    }
+    const mat = panelMaterials[matIdx];
+    
     if (!mat || mat.type === 'unit') {
         visualizer.innerHTML = "<h4>Visualizer</h4><p style='color:#AAA; font-size:0.8em;'>Select a Sheet or Roll material<br>to see the cut diagram.</p>";
     } else {
-        const sheetW = rowSheetWMM ? rowSheetWMM / 304.8 : (mat.width || 4);
+        const sheetW = mat.width || 4;
         const sheetL = mat.length || 8;
         const sFt = strutLenMM / 304.8;
         
