@@ -340,7 +340,11 @@ function populateRowMaterialSelects() {
         panelMaterials.forEach((mat, idx) => {
             const opt = document.createElement("option");
             opt.value = idx;
-            opt.innerText = mat.name;
+            let display = mat.name;
+            if (mat.type !== 'unit') {
+                display += ` (${mat.width}x${mat.length} ft)`;
+            }
+            opt.innerText = display;
             sel.appendChild(opt);
         });
 
@@ -735,7 +739,11 @@ function render() {
         const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
         let matOptions = `<option value="default">Use Global Default</option>`;
         panelMaterials.forEach((mat, idx) => {
-            matOptions += `<option value="${idx}">${mat.name}</option>`;
+            let display = mat.name;
+            if (mat.type !== 'unit') {
+                display += ` (${mat.width}x${mat.length} ft)`;
+            }
+            matOptions += `<option value="${idx}">${display}</option>`;
         });
 
         row.innerHTML = `
