@@ -776,6 +776,19 @@ function showOnlyPD() {
     generateVisibilityControls();
 }
 
+function showAllDomes() {
+    localStorage.setItem("hiddenDomeRows", JSON.stringify([]));
+    
+    // Refresh table and controls
+    const body = document.getElementById("tableBody");
+    const rows = body.querySelectorAll("tr");
+    rows.forEach(row => {
+        row.style.display = "";
+    });
+    
+    generateVisibilityControls();
+}
+
 function debounce(i, type) {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => calcRow(i, type), UPDATE_DELAY);
