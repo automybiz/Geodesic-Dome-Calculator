@@ -777,12 +777,13 @@ function render() {
 
     // Run calculations for all rows after they are all added to the DOM
     setTimeout(() => {
-        const rows = document.querySelectorAll("#tableBody tr");
-        rows.forEach(r => {
-            const id = parseInt(r.getAttribute("data-id"));
-            calcRow(id, 'init');
+        domeConfigs.forEach((_, i) => {
+            const row = document.querySelector(`tr[data-id="${i}"]`);
+            if (row) {
+                calcRow(i, 'init');
+            }
         });
-    }, 100);
+    }, 250);
     toggleDiagonalColumn(); // Apply initial visibility
     initTooltip();
 }
