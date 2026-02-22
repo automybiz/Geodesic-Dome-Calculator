@@ -1043,7 +1043,8 @@ function calcRow(i, trigger) {
 
         sHtml += `<span class="${errorClass}" data-tooltip-id="${isOver ? 'TOOLTIP_COLUMN_WHY_RED' : ''}" style="${isOver ? "cursor:help" : ""}">${p.qty} x ${formatFromMM(p.len)} (${p.label})</span>${eyeIcon}<br>`;
     });
-    r.querySelector(".s-list").innerHTML = `<div class="strut-display">${sHtml}</div>`;
+    const sListEl = r.querySelector(".s-list");
+    if (sListEl) sListEl.innerHTML = `<div class="strut-display">${sHtml}</div>`;
 
     let totalTubes = 0;
     for (let label in data.parts) {
@@ -1052,9 +1053,12 @@ function calcRow(i, trigger) {
         totalTubes += Math.ceil(data.parts[label].qty / strutsPerTube);
     }
 
-    r.querySelector(".t-t").innerText = totalTubes;
-    r.querySelector(".t-s").innerText = data.struts;
-    r.querySelector(".t-h").innerText = data.bolts;
+    const ttEl = r.querySelector(".t-t");
+    const tsEl = r.querySelector(".t-s");
+    const thEl = r.querySelector(".t-h");
+    if (ttEl) ttEl.innerText = totalTubes;
+    if (tsEl) tsEl.innerText = data.struts;
+    if (thEl) thEl.innerText = data.bolts;
 
     // --- Panel Cost Calculation ---
     const radiusFt = radiusMM / 304.8; 
@@ -1100,11 +1104,13 @@ function calcRow(i, trigger) {
 
     const pdPrice = parseFloat(conf.pd.split(" ")[0].replace(/[$,]/g, ""));
     const threshold = parseFloat(document.getElementById("savingsThreshold").value) / 100;
-    totalCell.classList.remove("price-red", "price-green", "price-white");
-    if (frameCost > pdPrice) totalCell.classList.add("price-red");
-    else if (frameCost <= pdPrice * (1 - threshold)) totalCell.classList.add("price-green");
-    else totalCell.classList.add("price-white");
-    totalCell.setAttribute("data-tooltip-id", "TOOLTIP_COLUMN_SAVINGS");
+    if (totalCell) {
+        totalCell.classList.remove("price-red", "price-green", "price-white");
+        if (frameCost > pdPrice) totalCell.classList.add("price-red");
+        else if (frameCost <= pdPrice * (1 - threshold)) totalCell.classList.add("price-green");
+        else totalCell.classList.add("price-white");
+        totalCell.setAttribute("data-tooltip-id", "TOOLTIP_COLUMN_SAVINGS");
+    }
 }
 
 function initTooltip() {
