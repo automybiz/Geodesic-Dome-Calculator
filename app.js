@@ -15,13 +15,13 @@ let panelMaterials = [
 
 // Helper to ensure material has valid dimensions
 function sanitizeMaterial(mat) {
+    // Migration: If type was unit, convert it to sheet so visualizer works
     if (mat.type === 'unit') {
-        mat.width = mat.width || 3; // default for yards if not set
-        mat.length = mat.length || 3;
-    } else {
-        mat.width = mat.width || 4;
-        mat.length = mat.length || 8;
+        mat.type = 'sheet';
     }
+    // Always enforce some dimensions
+    mat.width = mat.width || 4;
+    mat.length = mat.length || 8;
     return mat;
 }
 
@@ -39,7 +39,7 @@ const TOOLTIP_COLUMN_DIY_FREQ = `Frequency (V) indicates how many times the tria
 <b>Optimization Modes:</b>
 <ul>
     <li><b>Lowest Price (Budget):</b> The calculator scans all frequencies and automatically picks the one that results in the lowest total cost (Frame + Hardware).</li>
-    <li><b>Lowest Frequency (Complexity):</b> The calculator picks the simplest dome with the fewest parts that still fits your material.</li>
+    <li><b>Lowest Frequency (Easiest 2 Build):</b> The calculator picks the simplest dome with the fewest parts that still fits your material.</li>
 </ul>
 
 <b>Difficulty Level:</b>
@@ -129,11 +129,19 @@ Strut groups are listed alphabetically (A, B, C...) to guide your build:
 </ul>
 <i>Tip: Label your struts by letter during cutting to make assembly much faster!</i>`;
 
-const TOOLTIP_DEFAULT_FREQ_OPTIMIZE = `<b>Optimization Behavior:</b>
-This setting defines the "logic" used during page load or when you change material sizes.
+const TOOLTIP_COLUMN_STRUT_SORT = `<b>Strut Sorting Modes:</b>
 <ul>
-    <li><b>Note:</b> Changing this dropdown will not instantly reset your current frequencies. It will take effect upon the next <b>Page Refresh</b> or when you modify a <b>Sheet Width</b> or <b>Diagonal</b> value.</li>
-    <li>This prevents the calculator from accidentally overwriting your manual frequency choices while you are working.</li>
+    <li><b>Alphabetical (A-Z):</b> Best for the <b>Building Stage</b>. This follows the assembly tiers from the ground up.</li>
+    <li><b>Shortest to Longest:</b> Best for the <b>Preparation Stage</b>. Perfect for grouping similar cuts at the saw.</li>
+</ul>
+<b>Note:</b> Changing this dropdown won't instantly sort your struts. Click the orange <b>[ SORT IT! ]</b> button to apply the change.`;
+
+const TOOLTIP_DEFAULT_FREQ_SORT = `<b>Frequency Sorting Behavior:</b>
+This setting defines how the calculator re-optimizes your build.
+<ul>
+    <li><b>Manual Protection:</b> We don't sort automatically to protect any custom frequency tweaks you've made.</li>
+    <li><b>Trigger:</b> Changing this dropdown, or manually tweaking a frequency in the table, will reveal the orange <b>[ SORT IT! ]</b> button.</li>
+    <li><b>Execute:</b> Click the button to apply the selected <b>Lowest Frequency (Easiest 2 Build)</b> or <b>Lowest Price (Budget)</b> rule to all rows.</li>
 </ul>`;
 
 const TOOLTIP_COLUMN_CONDUIT_SAFETY = `<b>Conduit Safety & Sizing:</b>
@@ -169,7 +177,8 @@ const TOOLTIP_MAP = {
     TOOLTIP_DEFAULT_MAT_EFFICIENCY,
     TOOLTIP_COLUMN_PANEL_COST,
     TOOLTIP_COLUMN_TOTAL_STRUTS,
-    TOOLTIP_DEFAULT_FREQ_OPTIMIZE,
+    TOOLTIP_DEFAULT_FREQ_SORT,
+    TOOLTIP_COLUMN_STRUT_SORT,
     TOOLTIP_COLUMN_CONDUIT_SAFETY
 };
 
@@ -324,6 +333,12 @@ function populateMaterialSelect() {
         panelMaterials = JSON.parse(stored).map(sanitizeMaterial);
     }
 
+    // Sort materials alphabetically by name
+    panelMaterials.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Save sorted list back to keep indices consistent (or we use IDs in future)
+    localStorage.setItem("panelMaterials", JSON.stringify(panelMaterials));
+
     select.innerHTML = "";
     panelMaterials.forEach((mat, index) => {
         const opt = document.createElement("option");
@@ -336,25 +351,24 @@ function populateMaterialSelect() {
         select.appendChild(opt);
     });
     
-    // Restore selection
-    const savedIndex = localStorage.getItem("selectedMaterialIndex");
-    if (savedIndex !== null && panelMaterials[savedIndex]) {
-        select.value = savedIndex;
-    } else {
-        localStorage.setItem("selectedMaterialIndex", 0);
-        select.value = 0;
-    }
+    // Restore selection by name to handle index changes after sorting
+    const savedName = localStorage.getItem("selectedMaterialName");
+    let foundIndex = panelMaterials.findIndex(m => m.name === savedName);
+    if (foundIndex === -1) foundIndex = 0;
+    
+    select.value = foundIndex;
+    localStorage.setItem("selectedMaterialIndex", foundIndex);
     
     populateRowMaterialSelects();
 }
 
 function populateRowMaterialSelects() {
     const selects = document.querySelectorAll(".s-mat-sel");
-    const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
+    const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelectionsByName") || "{}");
 
     selects.forEach(sel => {
         const rowIndex = sel.closest("tr").getAttribute("data-id");
-        sel.innerHTML = `<option value="default">Use Global Default</option>`;
+        sel.innerHTML = ""; // Removed "Use Global Default"
         panelMaterials.forEach((mat, idx) => {
             const opt = document.createElement("option");
             opt.value = idx;
@@ -366,11 +380,13 @@ function populateRowMaterialSelects() {
             sel.appendChild(opt);
         });
 
-        // Restore row selection
-        if (storedSelections[rowIndex] !== undefined) {
-            sel.value = storedSelections[rowIndex];
+        // Restore row selection by name
+        let foundIndex = panelMaterials.findIndex(m => m.name === storedSelections[rowIndex]);
+        if (foundIndex !== -1) {
+            sel.value = foundIndex;
         } else {
-            sel.value = "default";
+            // Default to global setting if no specific selection exists
+            sel.value = document.getElementById("panelMaterialSelect").value;
         }
     });
 }
@@ -384,6 +400,7 @@ function updatePanelCost() {
         document.getElementById("panelCostDisplay").innerText = 
             `Price: $${mat.price} | Area: ${mat.areaSqFt} sqft | Waste: ${wastePct}%`;
         localStorage.setItem("selectedMaterialIndex", index);
+        localStorage.setItem("selectedMaterialName", mat.name);
         recalcAll();
     }
 }
@@ -523,45 +540,29 @@ function closeMaterialModal() {
 }
 
 function toggleMatInputs() {
-    const type = document.getElementById("newMatType").value;
     const wGroup = document.getElementById("dimWidthGroup");
     const lGroup = document.getElementById("dimLengthGroup");
     
-    if (type === 'unit') {
-        wGroup.querySelector("label").innerText = "Area (sq ft)";
-        lGroup.style.display = "none";
-    } else {
-        wGroup.querySelector("label").innerText = "Width (ft)";
-        lGroup.style.display = "flex";
-    }
+    wGroup.querySelector("label").innerText = "Width (ft)";
+    lGroup.style.display = "flex";
     updateModalVisualizer();
 }
 
 function updateModalVisualizer() {
-    const type = document.getElementById("newMatType").value;
     const width = parseFloat(document.getElementById("newMatWidth").value) || 1;
     const length = parseFloat(document.getElementById("newMatLength").value) || 1;
     const container = document.getElementById("modalSvgContainer");
     
-    if (type === 'unit') {
-        const size = Math.sqrt(width); // Represent Area as a square
-        const side = 200;
-        container.innerHTML = `<svg width="200" height="200">
-            <rect x="10" y="10" width="180" height="180" fill="rgba(0,255,255,0.2)" stroke="#0FF" stroke-width="2" />
-            <text x="100" y="110" fill="#AAA" font-size="12" text-anchor="middle">Area: ${width} sq ft</text>
-        </svg>`;
-    } else {
-        const maxW = 300;
-        const maxL = 300;
-        const scale = Math.min(maxW / width, maxL / length);
-        const canvasW = width * scale;
-        const canvasL = length * scale;
-        
-        container.innerHTML = `<svg width="${canvasW}" height="${canvasL}">
-            <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="rgba(0,255,255,0.2)" stroke="#0FF" stroke-width="2" />
-            <text x="${canvasW/2}" y="${canvasL/2}" fill="#AAA" font-size="12" text-anchor="middle">${width}' x ${length}'</text>
-        </svg>`;
-    }
+    const maxW = 300;
+    const maxL = 300;
+    const scale = Math.min(maxW / width, maxL / length);
+    const canvasW = width * scale;
+    const canvasL = length * scale;
+    
+    container.innerHTML = `<svg width="${canvasW}" height="${canvasL}">
+        <rect x="0" y="0" width="${canvasW}" height="${canvasL}" fill="rgba(0,255,255,0.2)" stroke="#0FF" stroke-width="2" />
+        <text x="${canvasW/2}" y="${canvasL/2}" fill="#AAA" font-size="12" text-anchor="middle">${width}' x ${length}'</text>
+    </svg>`;
 }
 
 // Attach listeners to modal inputs
@@ -719,7 +720,7 @@ function render() {
         const radiusFt = conf.radiusMM / 304.8;
         const sqFt = Math.round(2 * Math.PI * radiusFt * radiusFt);
         
-        const sizeDisplay = `${conf.size} (${diamM}m)<br><span style="font-size:0.8em; color:#AAA">(~${sqFt} sq ft)</span>`;
+        const sizeDisplay = `<div style="display:flex; align-items:flex-start; justify-content:space-between;"><div>${conf.size} (${diamM}m)<br><span style="font-size:0.8em; color:#AAA">(~${sqFt} sq ft)</span></div><a href="dome_visualizer.html?v=${conf.baseFreq}" class="viz-link" title="View 3D Visualizer" style="text-decoration:none; margin-left:10px; line-height:1;"><span style="font-size:1.2em; color:#0ff; cursor:pointer;">🧊</span></a></div>`;
 
         // Calculate Pacific Domes Specs
         let pdFreq = "3V"; // Default
@@ -754,8 +755,8 @@ function render() {
         }
         
         // Prepare options for the material dropdown
-        const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
-        let matOptions = `<option value="default">Use Global Default</option>`;
+        const storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelectionsByName") || "{}");
+        let matOptions = "";
         panelMaterials.forEach((mat, idx) => {
             let display = mat.name;
             if (mat.width && mat.length) {
@@ -767,7 +768,7 @@ function render() {
         row.innerHTML = `
             <td>${sizeDisplay}</td>
             <td>${pdDisplay}</td>
-            <td><select class="f-sel" onchange="calcRow(${i}, 'manual')">
+            <td><select class="f-sel" onchange="onRowFreqChange(${i})">
                 <option value="1V">1V</option><option value="2V">2V</option><option value="3V">3V</option>
                 <option value="4V">4V</option><option value="5V">5V</option><option value="6V">6V</option>
                 <option value="7V">7V</option><option value="8V">8V</option>
@@ -794,10 +795,12 @@ function render() {
         
         // Set the correct material selection
         const rowMatSel = row.querySelector(".s-mat-sel");
-        if (storedSelections[i] !== undefined) {
-            rowMatSel.value = storedSelections[i];
+        let foundIdx = panelMaterials.findIndex(m => m.name === storedSelections[i]);
+        if (foundIdx !== -1) {
+            rowMatSel.value = foundIdx;
         } else {
-            rowMatSel.value = "default";
+            // Default to whatever the global settings has
+            rowMatSel.value = document.getElementById("panelMaterialSelect").value;
         }
     });
 
@@ -902,12 +905,32 @@ function showAllDomes() {
     generateVisibilityControls();
 }
 
+function hideAllDomes() {
+    let hiddenRows = domeConfigs.map((_, i) => i);
+    localStorage.setItem("hiddenDomeRows", JSON.stringify(hiddenRows));
+    
+    // Refresh table and controls
+    const body = document.getElementById("tableBody");
+    const rows = body.querySelectorAll("tr");
+    rows.forEach(row => {
+        row.style.display = "none";
+    });
+    
+    generateVisibilityControls();
+}
+
 function onRowMaterialChange(rowIndex) {
     const r = document.querySelector(`tr[data-id="${rowIndex}"]`);
     const sel = r.querySelector(".s-mat-sel");
-    let storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelections") || "{}");
-    storedSelections[rowIndex] = sel.value;
-    localStorage.setItem("rowMaterialSelections", JSON.stringify(storedSelections));
+    const matName = panelMaterials[sel.value].name;
+    let storedSelections = JSON.parse(localStorage.getItem("rowMaterialSelectionsByName") || "{}");
+    storedSelections[rowIndex] = matName;
+    localStorage.setItem("rowMaterialSelectionsByName", JSON.stringify(storedSelections));
+    calcRow(rowIndex);
+}
+
+function onRowFreqChange(rowIndex) {
+    document.getElementById('btnFreqSort').style.display = 'block';
     calcRow(rowIndex);
 }
 
@@ -951,10 +974,7 @@ function calcRow(i, trigger) {
 
     // Data Management
     const matSel = r.querySelector(".s-mat-sel");
-    let matIndex = matSel.value;
-    if (matIndex === "default") {
-        matIndex = document.getElementById("panelMaterialSelect").value;
-    }
+    let matIndex = matSel ? matSel.value : document.getElementById("panelMaterialSelect").value;
     const mat = panelMaterials[matIndex];
     
     // Width is always used for the "fits on sheet" logic
@@ -1023,8 +1043,7 @@ function calcRow(i, trigger) {
     const activeData = freqData[currentFreq];
     let maxRForDiag = 0;
     for (let p in activeData.parts) { if (activeData.parts[p].r > maxRForDiag) maxRForDiag = activeData.parts[p].r; }
-    let longestStrutC2C = radiusMM * maxRForDiag;
-    let calculatedDiagMM = longestStrutC2C * PHI;
+    let longestStrutC2C = radiusMM * maxRForDiag;let calculatedDiagMM = longestStrutC2C * PHI;
     
     const diagEl = r.querySelector(".diag");
     if (diagEl) {
@@ -1122,9 +1141,9 @@ function calcRow(i, trigger) {
         if (mat.type === 'roll') unitLabel = "rolls";
 
         // Detailed tooltip for panel cost
-        const tipText = `<b>Panel Estimation:</b>
+    const tipText = `<b>Panel Estimation:</b>
         <br>• Dome Surface Area: ${Math.round(surfaceAreaSqFt)} sqft
-        <br>• Sheet Area: ${mat.areaSqFt} sqft
+        <br>• Sheet Area: ${mat.areaSqFt} sqft (${mat.width}x${mat.length} ft)
         <br>• Waste Factor: ${Math.round((waste-1)*100)}%
         <br>• Est. ${unitLabel.charAt(0).toUpperCase() + unitLabel.slice(1)}: ${sheetsNeeded}
         <br>• Est. Panels (1/2 Dome): ~${approxPanels}`;
@@ -1254,10 +1273,7 @@ function showVisualizer(el, strutLenMM) {
     const visualizer = document.getElementById("customVisualizer");
     const row = el.closest('tr');
     const matSel = row.querySelector(".s-mat-sel");
-    let matIdx = matSel.value;
-    if (matIdx === "default") {
-        matIdx = document.getElementById("panelMaterialSelect").value;
-    }
+    let matIdx = matSel ? matSel.value : document.getElementById("panelMaterialSelect").value;
     const mat = panelMaterials[matIdx];
     
     if (!mat || mat.type === 'unit') {

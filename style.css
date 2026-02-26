@@ -19,19 +19,33 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     padding: 20px;
+    margin: 0px;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 20px;
     box-shadow: 0 0 10px var(--highlight);
+    border: 1px solid var(--table-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
 }
 
 th, td {
-    border: 1px solid var(--table-border);
+    border-right: 1px solid var(--table-border);
+    border-bottom: 1px solid var(--table-border);
     padding: 10px;
     text-align: center;
+}
+
+th:last-child, td:last-child {
+    border-right: none;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
 }
 
 th {
@@ -117,7 +131,7 @@ input[type="number"] {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 15px;
     align-items: end;
 }
@@ -149,7 +163,7 @@ input[type="number"] {
 
 .visibility-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
     gap: 10px;
     margin-top: 5px;
 }
@@ -309,4 +323,13 @@ kbd {
     line-height: 1;
     padding: 2px 4px;
     white-space: nowrap;
+}
+
+.viz-link {
+    transition: transform 0.2s ease-in-out;
+    display: inline-block;
+}
+
+.viz-link:hover {
+    transform: scale(1.3);
 }
